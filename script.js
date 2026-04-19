@@ -9,12 +9,24 @@ let level = localStorage.getItem(LEVEL_KEY) === "2kyu" ? "2kyu" : "1kyu";
 
 // 旧キーからの移行（1回のみ）
 (function migrateLegacy() {
-  const OLD = "eitango1kyu.words.v1";
-  const old = localStorage.getItem(OLD);
-  if (old && !localStorage.getItem(storageKeyFor("1kyu"))) {
-    localStorage.setItem(storageKeyFor("1kyu"), old);
+  const OLD_WORDS = "eitango1kyu.words.v1";
+  const oldWords = localStorage.getItem(OLD_WORDS);
+  if (oldWords && !localStorage.getItem(storageKeyFor("1kyu"))) {
+    localStorage.setItem(storageKeyFor("1kyu"), oldWords);
   }
-  if (old) localStorage.removeItem(OLD);
+  if (oldWords) localStorage.removeItem(OLD_WORDS);
+
+  const OLD_SPEAK = "eitango1kyu.speak.v1";
+  if (localStorage.getItem(OLD_SPEAK) && !localStorage.getItem(SPEAK_KEY)) {
+    localStorage.setItem(SPEAK_KEY, localStorage.getItem(OLD_SPEAK));
+  }
+  localStorage.removeItem(OLD_SPEAK);
+
+  const OLD_MODE = "eitango1kyu.mode.v1";
+  if (localStorage.getItem(OLD_MODE) && !localStorage.getItem(MODE_KEY)) {
+    localStorage.setItem(MODE_KEY, localStorage.getItem(OLD_MODE));
+  }
+  localStorage.removeItem(OLD_MODE);
 })();
 
 let words = loadWords();
@@ -476,7 +488,7 @@ document.getElementById("exportBtn").addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `eitango1kyu_${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `eitango_${level}_${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -510,10 +522,10 @@ document.getElementById("importFile").addEventListener("change", async e => {
       return;
     }
 
-    const mode = confirm(
+    const proceed = confirm(
       `${normalized.length}件の単語を読み込みます。\n\n「OK」→ 既存データに追加\n「キャンセル」→ 何もしない`
     );
-    if (!mode) { e.target.value = ""; return; }
+    if (!proceed) { e.target.value = ""; return; }
 
     const replaceAll = confirm("既存データを全て置き換えますか？\n「OK」→ 置き換え\n「キャンセル」→ 追加");
     if (replaceAll) words = normalized;
@@ -592,12 +604,15 @@ document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     if (btn.dataset.level === level) return;
     synth && synth.cancel();
+    card.classList.remove("flipped", "swipe-left", "swipe-right", "swipe-in-left", "swipe-in-right");
+    speakBtn.classList.remove("speaking");
+    speakBtnBack.classList.remove("speaking");
     level = btn.dataset.level;
     localStorage.setItem(LEVEL_KEY, level);
     words = loadWords();
     applyLevelUI();
     exitEditMode();
-    if (searchInput) searchInput.value = "";
+    searchInput.value = "";
     resetStudy();
     renderList();
   });
