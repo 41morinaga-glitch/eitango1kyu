@@ -1,4 +1,4 @@
-const WORDS = [
+const WORDS_1KYU = [
   { word: "abate", pos: "動詞", meaning: "和らぐ、弱まる", example: "The storm finally began to abate.", exampleJa: "嵐がようやく弱まり始めた。" },
   { word: "aberration", pos: "名詞", meaning: "異常、逸脱", example: "His rude behavior was an aberration.", exampleJa: "彼の無礼な振る舞いは異常だった。" },
   { word: "abhor", pos: "動詞", meaning: "忌み嫌う", example: "I abhor all forms of violence.", exampleJa: "私はあらゆる暴力を忌み嫌う。" },

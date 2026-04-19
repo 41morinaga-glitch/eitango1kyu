@@ -9,7 +9,11 @@
 <body>
 <div class="app">
   <header>
-    <h1>英検1級 英単語</h1>
+    <h1 id="appTitle">英検1級 英単語</h1>
+    <div class="level-switch" id="levelSwitch" role="tablist" aria-label="レベル選択">
+      <button type="button" class="level-btn active" data-level="1kyu">英検1級</button>
+      <button type="button" class="level-btn" data-level="2kyu">英検2級</button>
+    </div>
     <nav class="tabs">
       <button class="tab active" data-view="study">学習</button>
       <button class="tab" data-view="manage">単語管理</button>
@@ -124,7 +128,8 @@
   </main>
 </div>
 
-<script src="words.js"></script>
+<script src="words_1kyu.js"></script>
+<script src="words_2kyu.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

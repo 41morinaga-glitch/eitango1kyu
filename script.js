@@ -1,6 +1,21 @@
-const STORAGE_KEY = "eitango1kyu.words.v1";
-const SPEAK_KEY = "eitango1kyu.speak.v1";
-const MODE_KEY = "eitango1kyu.mode.v1";
+const SPEAK_KEY = "eitango.speak.v1";
+const MODE_KEY = "eitango.mode.v1";
+const LEVEL_KEY = "eitango.level.v1";
+const storageKeyFor = lv => `eitango.words.${lv}.v1`;
+
+const LEVEL_TITLE = { "1kyu": "英検1級 英単語", "2kyu": "英検2級 英単語" };
+
+let level = localStorage.getItem(LEVEL_KEY) === "2kyu" ? "2kyu" : "1kyu";
+
+// 旧キーからの移行（1回のみ）
+(function migrateLegacy() {
+  const OLD = "eitango1kyu.words.v1";
+  const old = localStorage.getItem(OLD);
+  if (old && !localStorage.getItem(storageKeyFor("1kyu"))) {
+    localStorage.setItem(storageKeyFor("1kyu"), old);
+  }
+  if (old) localStorage.removeItem(OLD);
+})();
 
 let words = loadWords();
 let list = [];
@@ -11,14 +26,19 @@ let mode = localStorage.getItem(MODE_KEY) === "jaen" ? "jaen" : "enja";
 
 function loadWords() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(storageKeyFor(level));
     if (raw) return JSON.parse(raw);
   } catch (e) {}
   return [];
 }
 
 function saveWords() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+  localStorage.setItem(storageKeyFor(level), JSON.stringify(words));
+}
+
+function sampleFor(lv) {
+  if (lv === "2kyu") return typeof WORDS_2KYU !== "undefined" ? WORDS_2KYU : [];
+  return typeof WORDS_1KYU !== "undefined" ? WORDS_1KYU : [];
 }
 
 function uid() {
@@ -541,12 +561,13 @@ function parseCSVLine(line) {
 }
 
 document.getElementById("loadSampleBtn").addEventListener("click", () => {
-  if (!confirm("サンプル単語を既存データに追加します。よろしいですか？")) return;
-  const sample = (typeof WORDS !== "undefined" ? WORDS : []).map(w => ({ id: uid(), ...w }));
+  const lvName = level === "2kyu" ? "英検2級" : "英検1級";
+  if (!confirm(`${lvName}のサンプル単語を既存データに追加します。よろしいですか？`)) return;
+  const sample = sampleFor(level).map(w => ({ id: uid(), ...w }));
   words = words.concat(sample);
   saveWords();
   renderList();
-  alert(`サンプル ${sample.length}件を追加しました。`);
+  alert(`${lvName}サンプル ${sample.length}件を追加しました。`);
 });
 
 document.getElementById("clearAllBtn").addEventListener("click", () => {
@@ -557,6 +578,32 @@ document.getElementById("clearAllBtn").addEventListener("click", () => {
   renderList();
 });
 
+/* ========== レベル切替 ========== */
+const appTitle = document.getElementById("appTitle");
+
+function applyLevelUI() {
+  appTitle.textContent = LEVEL_TITLE[level];
+  document.querySelectorAll(".level-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.level === level));
+  document.title = LEVEL_TITLE[level] + " アプリ";
+}
+
+document.querySelectorAll(".level-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.level === level) return;
+    synth && synth.cancel();
+    level = btn.dataset.level;
+    localStorage.setItem(LEVEL_KEY, level);
+    words = loadWords();
+    applyLevelUI();
+    exitEditMode();
+    if (searchInput) searchInput.value = "";
+    resetStudy();
+    renderList();
+  });
+});
+
 /* ========== 初期化 ========== */
+applyLevelUI();
 resetStudy();
 renderList();

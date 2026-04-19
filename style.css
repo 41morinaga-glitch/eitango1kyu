@@ -27,7 +27,35 @@ h1 {
   font-size: 28px;
   font-weight: 700;
   color: #2c3e50;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
+
+.level-switch {
+  display: inline-flex;
+  background: white;
+  padding: 5px;
+  border-radius: 12px;
+  gap: 4px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.level-btn {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 22px;
+  border: none;
+  background: transparent;
+  color: #7f8c8d;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.level-btn.active {
+  background: #3498db;
+  color: white;
 }
 
 h2 {
