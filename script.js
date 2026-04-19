@@ -60,6 +60,7 @@ function uid() {
 /* ========== 発音（Web Speech API） ========== */
 const synth = window.speechSynthesis;
 let enVoice = null;
+let synthPrimed = false;
 
 function pickVoice() {
   if (!synth) return;
@@ -69,24 +70,54 @@ function pickVoice() {
     voices.find(v => v.lang === "en-US" && /Samantha|Alex|Ava|Karen|Daniel/i.test(v.name)) ||
     voices.find(v => v.lang === "en-US") ||
     voices.find(v => v.lang && v.lang.startsWith("en")) ||
-    voices[0];
+    null;
 }
 if (synth) {
   pickVoice();
-  synth.addEventListener("voiceschanged", pickVoice);
+  if (typeof synth.addEventListener === "function") {
+    synth.addEventListener("voiceschanged", pickVoice);
+  } else {
+    synth.onvoiceschanged = pickVoice;
+  }
 }
 
-function speak(text, opts = {}) {
-  if (!synth || !text) return;
-  synth.cancel();
+// iOS/Safariで初回のユーザー操作時に発音を解除する
+function primeSynth() {
+  if (synthPrimed || !synth) return;
+  try {
+    const u = new SpeechSynthesisUtterance("");
+    u.volume = 0;
+    synth.speak(u);
+    synthPrimed = true;
+  } catch (e) {}
+}
+document.addEventListener("click", primeSynth, { once: false, capture: true });
+document.addEventListener("touchstart", primeSynth, { passive: true });
+
+function doSpeak(text, opts) {
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "en-US";
   if (enVoice) u.voice = enVoice;
   u.rate = opts.rate || 0.95;
   u.pitch = 1;
+  u.volume = 1;
   if (opts.onstart) u.onstart = opts.onstart;
-  if (opts.onend) u.onend = opts.onend;
+  u.onend = () => { if (opts.onend) opts.onend(); };
+  u.onerror = () => { if (opts.onend) opts.onend(); };
+  // Chrome desktopが長時間アイドルで一時停止していた場合
+  if (synth.paused) synth.resume();
   synth.speak(u);
+}
+
+function speak(text, opts = {}) {
+  if (!synth || !text) return;
+  // Chrome/Safariの既知の問題: cancel()直後のspeak()が無視されることがある
+  if (synth.speaking || synth.pending) {
+    synth.cancel();
+    setTimeout(() => doSpeak(text, opts), 120);
+  } else {
+    doSpeak(text, opts);
+  }
 }
 
 function speakWithIndicator(text, btn, rate) {
