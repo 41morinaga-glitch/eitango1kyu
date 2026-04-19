@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英検1級 英単語アプリ</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>英検1級 英単語</h1>
+    <nav class="tabs">
+      <button class="tab active" data-view="study">学習</button>
+      <button class="tab" data-view="manage">単語管理</button>
+    </nav>
+  </header>
+
+  <!-- 学習ビュー -->
+  <main id="studyView" class="view active">
+    <div class="study-top">
+      <div class="progress">
+        <span id="current">0</span> / <span id="total">0</span>
+      </div>
+      <div class="top-options">
+        <div class="mode-switch" id="modeSwitch" role="tablist" aria-label="表示モード">
+          <button type="button" class="mode-btn active" data-mode="enja">英→和</button>
+          <button type="button" class="mode-btn" data-mode="jaen">和→英</button>
+        </div>
+        <label class="speak-toggle" title="カード表示時に自動で発音">
+          <input type="checkbox" id="speakToggle">
+          <span class="switch"></span>
+          <span class="switch-label">🔊 自動発音</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" id="card">
+      <div class="card-inner" id="cardInner">
+        <div class="card-face card-front" id="faceFront">
+          <button class="speak-btn" id="speakBtn" title="発音を聞く" aria-label="発音">🔊</button>
+          <div class="front-content" id="frontContent"></div>
+          <div class="hint" id="frontHint">タップで意味を表示</div>
+        </div>
+        <div class="card-face card-back" id="faceBack">
+          <button class="speak-btn" id="speakBtnBack" title="例文を読む" aria-label="例文を読む">🔊</button>
+          <div class="back-content" id="backContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-msg" id="emptyMsg" hidden>
+      単語がありません。<br>「単語管理」から追加してください。
+    </div>
+
+    <div class="controls">
+      <button class="btn btn-nav" id="prevBtn">← 前へ</button>
+      <button class="btn btn-primary" id="flipBtn">めくる</button>
+      <button class="btn btn-nav" id="nextBtn">次へ →</button>
+    </div>
+
+    <div class="sub-controls">
+      <button class="btn btn-sub" id="shuffleBtn">🔀 シャッフル</button>
+      <button class="btn btn-sub" id="resetBtn">↺ 最初から</button>
+    </div>
+  </main>
+
+  <!-- 管理ビュー -->
+  <main id="manageView" class="view">
+    <section class="panel">
+      <h2 id="formTitle">単語を追加</h2>
+      <form id="wordForm">
+        <label>
+          <span>単語 <em>*</em></span>
+          <input type="text" id="fWord" required placeholder="例: abate">
+        </label>
+        <label>
+          <span>品詞</span>
+          <input type="text" id="fPos" placeholder="例: 動詞">
+        </label>
+        <label>
+          <span>意味 <em>*</em></span>
+          <input type="text" id="fMeaning" required placeholder="例: 和らぐ、弱まる">
+        </label>
+        <label>
+          <span>例文（英語）</span>
+          <input type="text" id="fExample" placeholder="例: The storm began to abate.">
+        </label>
+        <label>
+          <span>例文（日本語訳）</span>
+          <input type="text" id="fExampleJa" placeholder="例: 嵐が弱まり始めた。">
+        </label>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary" id="saveBtn">追加する</button>
+          <button type="button" class="btn btn-sub" id="cancelBtn" hidden>キャンセル</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>データの入出力</h2>
+      <div class="io-buttons">
+        <button class="btn btn-sub" id="exportBtn">📥 JSONで書き出す</button>
+        <label class="btn btn-sub file-label">
+          📤 JSON/CSVを読み込む
+          <input type="file" id="importFile" accept=".json,.csv" hidden>
+        </label>
+        <button class="btn btn-sub" id="loadSampleBtn">📚 サンプル単語を読み込む</button>
+        <button class="btn btn-danger" id="clearAllBtn">🗑 全削除</button>
+      </div>
+      <p class="note">
+        CSV形式: <code>word,pos,meaning,example,exampleJa</code>（1行目はヘッダー）<br>
+        データはお使いのブラウザ内（localStorage）に保存されます。
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>登録単語 <span class="count" id="listCount">0</span></h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 単語・意味で検索">
+      </div>
+      <ul class="word-list" id="wordList"></ul>
+    </section>
+  </main>
+</div>
+
+<script src="words.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
