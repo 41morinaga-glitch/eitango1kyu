@@ -152,14 +152,29 @@ abhor
       </div>
 
       <div class="import-method" id="photoMethod" hidden>
+        <div class="import-row">
+          <label>
+            <span>言語:</span>
+            <select id="ocrLang">
+              <option value="eng+jpn" selected>英語＋日本語</option>
+              <option value="eng">英語のみ（速い・精度高い）</option>
+              <option value="jpn">日本語のみ</option>
+            </select>
+          </label>
+          <label>
+            <input type="checkbox" id="ocrPreprocess" checked>
+            画像を前処理（精度UP）
+          </label>
+        </div>
         <label class="btn btn-sub file-label photo-btn">
-          📷 写真を選択（英語＋日本語）
-          <input type="file" id="ocrFile" accept="image/*" hidden>
+          📷 写真を選択（複数可）
+          <input type="file" id="ocrFile" accept="image/*" multiple hidden>
         </label>
         <div id="ocrStatus" class="ocr-status" hidden></div>
         <p class="note">
-          ※ 初回は OCR 用辞書データ（英+日）のダウンロードがあるため数十秒かかります。<br>
-          読み取り後は「テキスト貼り付け」画面に結果が入るので、編集→プレビューしてください。
+          ※ 初回は OCR 用辞書データのダウンロードがあるため数十秒かかります。<br>
+          ※ 前処理 = グレースケール化・コントラスト強調・2倍拡大で読取率UP。<br>
+          複数枚選択で一括処理し、結果は自動でプレビュー表示されます。
         </p>
       </div>
 

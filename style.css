@@ -634,8 +634,55 @@ h2 {
 .preview-list {
   border: 2px solid #ecf0f1;
   border-radius: 10px;
-  padding: 0 12px;
-  max-height: 280px;
+  padding: 6px;
+  max-height: 360px;
+}
+
+.preview-row {
+  display: flex !important;
+  gap: 6px;
+  padding: 6px 0 !important;
+  border-bottom: 1px solid #ecf0f1;
+  align-items: center;
+}
+
+.preview-row:last-child {
+  border-bottom: none !important;
+}
+
+.preview-row input {
+  font-size: 14px;
+  padding: 8px 10px;
+  border: 1px solid #ecf0f1;
+  border-radius: 6px;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.preview-row input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.preview-row .prev-word {
+  flex: 1 1 120px;
+  font-weight: 600;
+}
+
+.preview-row .prev-meaning {
+  flex: 2 1 160px;
+}
+
+.preview-row .icon-btn {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 520px) {
+  .preview-row {
+    flex-wrap: wrap;
+  }
+  .preview-row .prev-word { flex: 1 1 100%; }
+  .preview-row .prev-meaning { flex: 1 1 calc(100% - 44px); }
 }
 
 #wordForm {

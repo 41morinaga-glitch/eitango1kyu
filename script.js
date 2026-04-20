@@ -891,6 +891,51 @@ function parseImport(text, format) {
     .filter(Boolean);
 }
 
+function renderPreview() {
+  previewCount.textContent = parsedImport.length;
+  previewListEl.innerHTML = "";
+  if (parsedImport.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty-list";
+    li.textContent = "解析できる単語がありません";
+    previewListEl.appendChild(li);
+    return;
+  }
+  parsedImport.forEach((w, idx) => {
+    const li = document.createElement("li");
+    li.className = "preview-row";
+
+    const wInput = document.createElement("input");
+    wInput.type = "text";
+    wInput.className = "prev-word";
+    wInput.value = w.word;
+    wInput.placeholder = "単語";
+    wInput.addEventListener("input", () => { parsedImport[idx].word = wInput.value; });
+
+    const mInput = document.createElement("input");
+    mInput.type = "text";
+    mInput.className = "prev-meaning";
+    mInput.value = w.meaning;
+    mInput.placeholder = "意味";
+    mInput.addEventListener("input", () => { parsedImport[idx].meaning = mInput.value; });
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "icon-btn";
+    delBtn.textContent = "🗑";
+    delBtn.title = "削除";
+    delBtn.onclick = () => {
+      parsedImport.splice(idx, 1);
+      renderPreview();
+    };
+
+    li.appendChild(wInput);
+    li.appendChild(mInput);
+    li.appendChild(delBtn);
+    previewListEl.appendChild(li);
+  });
+}
+
 previewImportBtn.addEventListener("click", () => {
   parsedImport = parseImport(importTextEl.value, importFormatEl.value);
   if (parsedImport.length === 0) {
@@ -898,38 +943,26 @@ previewImportBtn.addEventListener("click", () => {
     importPreview.hidden = true;
     return;
   }
-  previewCount.textContent = parsedImport.length;
-  previewListEl.innerHTML = "";
-  const show = parsedImport.slice(0, 50);
-  show.forEach(w => {
-    const li = document.createElement("li");
-    const info = document.createElement("div");
-    info.className = "info";
-    const wd = document.createElement("div");
-    wd.className = "w";
-    wd.textContent = w.word;
-    const md = document.createElement("div");
-    md.className = "m";
-    md.textContent = w.meaning + (w.example ? ` — ${w.example}` : "");
-    info.appendChild(wd);
-    info.appendChild(md);
-    li.appendChild(info);
-    previewListEl.appendChild(li);
-  });
-  if (parsedImport.length > 50) {
-    const li = document.createElement("li");
-    li.className = "empty-list";
-    li.textContent = `... ほか ${parsedImport.length - 50} 件（全件取り込まれます）`;
-    previewListEl.appendChild(li);
-  }
+  renderPreview();
   importPreview.hidden = false;
   importPreview.scrollIntoView({ behavior: "smooth", block: "nearest" });
 });
 
 confirmImportBtn.addEventListener("click", () => {
-  if (parsedImport.length === 0) return;
+  const valid = parsedImport.filter(w => (w.word || "").trim() && (w.meaning || "").trim());
+  if (valid.length === 0) {
+    alert("単語と意味の両方が入力されている行がありません。");
+    return;
+  }
   const dest = document.querySelector('input[name="importDest"]:checked').value;
-  const items = parsedImport.map(w => ({ id: uid(), ...w }));
+  const items = valid.map(w => ({
+    id: uid(),
+    word: w.word.trim(),
+    meaning: w.meaning.trim(),
+    pos: (w.pos || "").trim(),
+    example: (w.example || "").trim(),
+    exampleJa: (w.exampleJa || "").trim(),
+  }));
   if (dest === "mysample") {
     mySample = mySample.concat(items);
     saveMySample();
@@ -967,33 +1000,89 @@ function loadTesseract() {
   return tesseractPromise;
 }
 
+/* 画像前処理: グレースケール + コントラスト強調 + 拡大（OCR精度向上） */
+function loadImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("画像の読み込みに失敗"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function preprocessImage(file) {
+  const img = await loadImage(file);
+  const maxDim = Math.max(img.width, img.height);
+  const scale = maxDim < 1200 ? 2 : (maxDim < 1600 ? 1.4 : 1);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  // グレースケール + コントラスト強調 (係数1.6、中央値128)
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    let v = (gray - 128) * 1.6 + 128;
+    v = v < 0 ? 0 : v > 255 ? 255 : v;
+    data[i] = data[i + 1] = data[i + 2] = v;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  URL.revokeObjectURL(img.src);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+}
+
 ocrFile.addEventListener("change", async e => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  const lang = document.getElementById("ocrLang").value;
+  const usePreprocess = document.getElementById("ocrPreprocess").checked;
   ocrStatus.hidden = false;
   ocrStatus.textContent = "ライブラリ読み込み中...";
   try {
     const Tesseract = await loadTesseract();
-    ocrStatus.textContent = "OCR準備中...";
-    const result = await Tesseract.recognize(file, "eng+jpn", {
-      logger: m => {
-        if (m.status && typeof m.progress === "number") {
-          const pct = Math.round(m.progress * 100);
-          const label = m.status === "recognizing text" ? "文字認識"
-                      : m.status.startsWith("loading") ? "辞書読込"
-                      : m.status;
-          ocrStatus.textContent = `${label} ${pct}%`;
+    let combined = "";
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const prefix = files.length > 1 ? `[${i + 1}/${files.length}] ` : "";
+      ocrStatus.textContent = `${prefix}画像処理中...`;
+      const input = usePreprocess ? await preprocessImage(file) : file;
+      const result = await Tesseract.recognize(input, lang, {
+        logger: m => {
+          if (m.status && typeof m.progress === "number") {
+            const pct = Math.round(m.progress * 100);
+            const label = m.status === "recognizing text" ? "文字認識"
+                        : m.status.startsWith("loading") ? "辞書読込"
+                        : m.status.startsWith("initializing") ? "初期化"
+                        : m.status;
+            ocrStatus.textContent = `${prefix}${label} ${pct}%`;
+          }
         }
-      }
-    });
-    const text = (result && result.data && result.data.text) || "";
-    ocrStatus.textContent = `✅ 読み取り完了: ${text.length}文字（下の貼り付け欄に挿入しました）`;
+      });
+      const text = (result && result.data && result.data.text) || "";
+      combined += (combined ? "\n\n" : "") + text;
+    }
+    ocrStatus.textContent = `✅ 読取完了 (${files.length}枚, ${combined.length}文字)`;
+
+    // テキスト欄に反映して自動プレビュー
     document.querySelectorAll(".import-tab").forEach(t => t.classList.remove("active"));
     document.querySelector('.import-tab[data-method="paste"]').classList.add("active");
     document.getElementById("pasteMethod").hidden = false;
     document.getElementById("photoMethod").hidden = true;
-    importTextEl.value = (importTextEl.value ? importTextEl.value + "\n\n" : "") + text;
-    importTextEl.focus();
+    importTextEl.value = (importTextEl.value ? importTextEl.value + "\n\n" : "") + combined;
+    parsedImport = parseImport(importTextEl.value, importFormatEl.value);
+    if (parsedImport.length > 0) {
+      renderPreview();
+      importPreview.hidden = false;
+      importPreview.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } else {
+      importTextEl.focus();
+      alert("OCRは完了しましたが、単語として解析できませんでした。\nテキストを確認・編集して「プレビュー」を押してください。");
+    }
   } catch (err) {
     ocrStatus.textContent = "❌ OCRに失敗しました: " + err.message;
   }
