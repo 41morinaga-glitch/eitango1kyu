@@ -101,6 +101,76 @@
       </form>
     </section>
 
+    <section class="panel">
+      <h2>📖 教科書から取り込み</h2>
+      <p class="note">
+        テキストを貼り付けるか、写真を読み取って、一括で単語を追加できます。<br>
+        タブ区切り／空行ブロック／「word - 意味」など様々な形式を自動判定します。
+      </p>
+
+      <div class="import-tabs">
+        <button type="button" class="import-tab active" data-method="paste">✍️ テキスト貼り付け</button>
+        <button type="button" class="import-tab" data-method="photo">📷 写真から読取</button>
+      </div>
+
+      <div class="import-method" id="pasteMethod">
+        <textarea id="importText" rows="7" placeholder="例1（タブ区切り・スプレッドシートから）:
+abate	和らぐ	The storm began to abate.	嵐が弱まり始めた。
+abhor	忌み嫌う
+
+例2（ハイフン区切り）:
+abate - 和らぐ、弱まる
+abhor - 忌み嫌う
+
+例3（空行区切りブロック）:
+abate
+和らぐ、弱まる
+The storm began to abate.
+嵐が弱まり始めた。
+
+abhor
+忌み嫌う"></textarea>
+        <div class="import-row">
+          <label>
+            <span>形式:</span>
+            <select id="importFormat">
+              <option value="auto">自動判定</option>
+              <option value="tsv">タブ区切り（word[Tab]意味[Tab]例文[Tab]訳）</option>
+              <option value="block">空行区切りブロック</option>
+              <option value="line">1行1語（- / : / スペース等を自動判定）</option>
+            </select>
+          </label>
+        </div>
+        <div class="import-row">
+          <span>取り込み先:</span>
+          <label><input type="radio" name="importDest" value="words" checked> 登録単語</label>
+          <label><input type="radio" name="importDest" value="mysample"> ⭐ マイサンプル</label>
+        </div>
+        <button type="button" class="btn btn-sub" id="previewImportBtn">👁 プレビュー</button>
+      </div>
+
+      <div class="import-method" id="photoMethod" hidden>
+        <label class="btn btn-sub file-label photo-btn">
+          📷 写真を選択（英語＋日本語）
+          <input type="file" id="ocrFile" accept="image/*" hidden>
+        </label>
+        <div id="ocrStatus" class="ocr-status" hidden></div>
+        <p class="note">
+          ※ 初回は OCR 用辞書データ（英+日）のダウンロードがあるため数十秒かかります。<br>
+          読み取り後は「テキスト貼り付け」画面に結果が入るので、編集→プレビューしてください。
+        </p>
+      </div>
+
+      <div id="importPreview" hidden>
+        <h3 class="preview-title">プレビュー <span class="count" id="previewCount">0</span></h3>
+        <ul class="word-list preview-list" id="previewList"></ul>
+        <div class="form-buttons">
+          <button type="button" class="btn btn-primary" id="confirmImportBtn">この内容で取り込む</button>
+          <button type="button" class="btn btn-sub" id="cancelImportBtn">キャンセル</button>
+        </div>
+      </div>
+    </section>
+
     <section class="panel highlight">
       <h2>⭐ マイサンプル <span class="count" id="msCount">0</span></h2>
       <p class="note">

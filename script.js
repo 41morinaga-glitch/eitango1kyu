@@ -646,6 +646,216 @@ document.getElementById("clearAllBtn").addEventListener("click", () => {
   renderList();
 });
 
+/* ========== 教科書から取り込み ========== */
+const importTextEl = document.getElementById("importText");
+const importFormatEl = document.getElementById("importFormat");
+const previewImportBtn = document.getElementById("previewImportBtn");
+const importPreview = document.getElementById("importPreview");
+const previewListEl = document.getElementById("previewList");
+const previewCount = document.getElementById("previewCount");
+const confirmImportBtn = document.getElementById("confirmImportBtn");
+const cancelImportBtn = document.getElementById("cancelImportBtn");
+const ocrFile = document.getElementById("ocrFile");
+const ocrStatus = document.getElementById("ocrStatus");
+let parsedImport = [];
+
+document.querySelectorAll(".import-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".import-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("pasteMethod").hidden = tab.dataset.method !== "paste";
+    document.getElementById("photoMethod").hidden = tab.dataset.method !== "photo";
+  });
+});
+
+function stripBullet(line) {
+  return line
+    .replace(/^[\s•・◆◇○●*►→]+/, "")
+    .replace(/^\d+[.)]\s*/, "")
+    .trim();
+}
+
+function parseImportLine(rawLine) {
+  const line = stripBullet(rawLine);
+  if (!line) return null;
+  // word | meaning | example | exampleJa
+  if (/\s*[|｜]\s*/.test(line) && line.split(/\s*[|｜]\s*/).length >= 2) {
+    const p = line.split(/\s*[|｜]\s*/).map(s => s.trim());
+    if (p[0] && p[1]) return { word: p[0], meaning: p[1], example: p[2] || "", exampleJa: p[3] || "", pos: "" };
+  }
+  // tab-separated single line
+  if (line.includes("\t")) {
+    const p = line.split(/\t/).map(s => s.trim());
+    if (p[0] && p[1]) return { word: p[0], meaning: p[1], example: p[2] || "", exampleJa: p[3] || "", pos: "" };
+  }
+  // word - meaning (hyphen/en dash/em dash)
+  const dashMatch = line.match(/^(.+?)\s+[-–—]\s+(.+)$/);
+  if (dashMatch) return { word: dashMatch[1].trim(), meaning: dashMatch[2].trim(), example: "", exampleJa: "", pos: "" };
+  // word: meaning
+  const colonMatch = line.match(/^(.+?)\s*[:：]\s+(.+)$/);
+  if (colonMatch) return { word: colonMatch[1].trim(), meaning: colonMatch[2].trim(), example: "", exampleJa: "", pos: "" };
+  // English word + Japanese meaning (space-separated)
+  const spaceMatch = line.match(/^([A-Za-z][A-Za-z0-9' .-]*?)\s+(.+)$/);
+  if (spaceMatch) return { word: spaceMatch[1].trim(), meaning: spaceMatch[2].trim(), example: "", exampleJa: "", pos: "" };
+  return null;
+}
+
+function parseImport(text, format) {
+  text = (text || "").trim();
+  if (!text) return [];
+  let fmt = format;
+  if (fmt === "auto") {
+    if (/\n\s*\n/.test(text)) fmt = "block";
+    else if (text.split(/\r?\n/).some(l => l.includes("\t"))) fmt = "tsv";
+    else fmt = "line";
+  }
+  if (fmt === "tsv") {
+    return text.split(/\r?\n/)
+      .map(l => l.trim()).filter(Boolean)
+      .map(l => {
+        const p = l.split(/\t/).map(s => (s || "").trim());
+        return { word: p[0] || "", meaning: p[1] || "", example: p[2] || "", exampleJa: p[3] || "", pos: "" };
+      })
+      .filter(w => w.word && w.meaning);
+  }
+  if (fmt === "block") {
+    return text.split(/\r?\n\s*\r?\n/)
+      .map(block => {
+        const lines = block.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length < 2) {
+          return lines.length === 1 ? parseImportLine(lines[0]) : null;
+        }
+        const word = lines[0];
+        const meaning = lines[1];
+        let example = "", exampleJa = "";
+        if (lines[2]) {
+          if (/^[A-Za-z]/.test(lines[2])) {
+            example = lines[2];
+            if (lines[3]) exampleJa = lines[3];
+          } else {
+            exampleJa = lines[2];
+          }
+        }
+        return { word, meaning, example, exampleJa, pos: "" };
+      })
+      .filter(Boolean)
+      .filter(w => w.word && w.meaning);
+  }
+  // line
+  return text.split(/\r?\n/)
+    .map(parseImportLine)
+    .filter(Boolean);
+}
+
+previewImportBtn.addEventListener("click", () => {
+  parsedImport = parseImport(importTextEl.value, importFormatEl.value);
+  if (parsedImport.length === 0) {
+    alert("解析できる単語がありませんでした。\n形式を変更するか、テキストの区切りを確認してください。");
+    importPreview.hidden = true;
+    return;
+  }
+  previewCount.textContent = parsedImport.length;
+  previewListEl.innerHTML = "";
+  const show = parsedImport.slice(0, 50);
+  show.forEach(w => {
+    const li = document.createElement("li");
+    const info = document.createElement("div");
+    info.className = "info";
+    const wd = document.createElement("div");
+    wd.className = "w";
+    wd.textContent = w.word;
+    const md = document.createElement("div");
+    md.className = "m";
+    md.textContent = w.meaning + (w.example ? ` — ${w.example}` : "");
+    info.appendChild(wd);
+    info.appendChild(md);
+    li.appendChild(info);
+    previewListEl.appendChild(li);
+  });
+  if (parsedImport.length > 50) {
+    const li = document.createElement("li");
+    li.className = "empty-list";
+    li.textContent = `... ほか ${parsedImport.length - 50} 件（全件取り込まれます）`;
+    previewListEl.appendChild(li);
+  }
+  importPreview.hidden = false;
+  importPreview.scrollIntoView({ behavior: "smooth", block: "nearest" });
+});
+
+confirmImportBtn.addEventListener("click", () => {
+  if (parsedImport.length === 0) return;
+  const dest = document.querySelector('input[name="importDest"]:checked').value;
+  const items = parsedImport.map(w => ({ id: uid(), ...w }));
+  if (dest === "mysample") {
+    mySample = mySample.concat(items);
+    saveMySample();
+    renderMySampleList();
+    alert(`⭐ マイサンプルに ${items.length}件 を取り込みました。`);
+  } else {
+    words = words.concat(items);
+    saveWords();
+    renderList();
+    alert(`登録単語に ${items.length}件 を取り込みました。`);
+  }
+  importTextEl.value = "";
+  parsedImport = [];
+  importPreview.hidden = true;
+});
+
+cancelImportBtn.addEventListener("click", () => {
+  parsedImport = [];
+  importPreview.hidden = true;
+});
+
+/* OCR (Tesseract.js: lazy load from CDN) */
+let tesseractPromise = null;
+function loadTesseract() {
+  if (!tesseractPromise) {
+    tesseractPromise = new Promise((resolve, reject) => {
+      if (window.Tesseract) return resolve(window.Tesseract);
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.onload = () => resolve(window.Tesseract);
+      s.onerror = () => reject(new Error("Tesseract.jsの読み込みに失敗しました"));
+      document.head.appendChild(s);
+    });
+  }
+  return tesseractPromise;
+}
+
+ocrFile.addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  ocrStatus.hidden = false;
+  ocrStatus.textContent = "ライブラリ読み込み中...";
+  try {
+    const Tesseract = await loadTesseract();
+    ocrStatus.textContent = "OCR準備中...";
+    const result = await Tesseract.recognize(file, "eng+jpn", {
+      logger: m => {
+        if (m.status && typeof m.progress === "number") {
+          const pct = Math.round(m.progress * 100);
+          const label = m.status === "recognizing text" ? "文字認識"
+                      : m.status.startsWith("loading") ? "辞書読込"
+                      : m.status;
+          ocrStatus.textContent = `${label} ${pct}%`;
+        }
+      }
+    });
+    const text = (result && result.data && result.data.text) || "";
+    ocrStatus.textContent = `✅ 読み取り完了: ${text.length}文字（下の貼り付け欄に挿入しました）`;
+    document.querySelectorAll(".import-tab").forEach(t => t.classList.remove("active"));
+    document.querySelector('.import-tab[data-method="paste"]').classList.add("active");
+    document.getElementById("pasteMethod").hidden = false;
+    document.getElementById("photoMethod").hidden = true;
+    importTextEl.value = (importTextEl.value ? importTextEl.value + "\n\n" : "") + text;
+    importTextEl.focus();
+  } catch (err) {
+    ocrStatus.textContent = "❌ OCRに失敗しました: " + err.message;
+  }
+  e.target.value = "";
+});
+
 /* ========== マイサンプル ========== */
 const msForm = document.getElementById("msForm");
 const msWord = document.getElementById("msWord");

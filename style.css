@@ -467,6 +467,112 @@ h2 {
   border: 2px solid #f9e6b3;
 }
 
+.import-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.import-tab {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 12px;
+  border: 2px solid #ecf0f1;
+  background: white;
+  color: #7f8c8d;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.import-tab.active {
+  background: #3498db;
+  color: white;
+  border-color: #3498db;
+}
+
+.import-method textarea {
+  width: 100%;
+  font-size: 14px;
+  padding: 12px 14px;
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  resize: vertical;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.import-method textarea:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.import-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.import-row > span {
+  font-weight: 600;
+  color: #7f8c8d;
+}
+
+.import-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.import-row select {
+  font-size: 13px;
+  padding: 7px 10px;
+  border: 2px solid #ecf0f1;
+  border-radius: 8px;
+  font-family: inherit;
+  max-width: 100%;
+}
+
+.photo-btn {
+  display: block;
+  text-align: center;
+  padding: 18px;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.ocr-status {
+  background: #ecf0f1;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2c3e50;
+  margin-bottom: 10px;
+  font-family: monospace;
+}
+
+.preview-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-top: 16px;
+  margin-bottom: 10px;
+}
+
+.preview-list {
+  border: 2px solid #ecf0f1;
+  border-radius: 10px;
+  padding: 0 12px;
+  max-height: 280px;
+}
+
 #wordForm {
   display: flex;
   flex-direction: column;
