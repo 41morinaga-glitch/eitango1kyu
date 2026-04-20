@@ -495,11 +495,12 @@ const searchInput = document.getElementById("searchInput");
 
 function renderList() {
   const q = searchInput.value.trim().toLowerCase();
-  const filtered = q
+  const base = q
     ? words.filter(w =>
         w.word.toLowerCase().includes(q) ||
         (w.meaning || "").toLowerCase().includes(q))
     : words;
+  const filtered = base.slice().reverse();
 
   listCount.textContent = words.length;
   wordList.innerHTML = "";
