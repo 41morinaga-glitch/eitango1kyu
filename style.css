@@ -467,6 +467,31 @@ h2 {
   border: 2px solid #f9e6b3;
 }
 
+.shared-status {
+  background: #eaf4ff;
+  border: 1px solid #c7e0f8;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: #2c3e50;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.shared-status strong {
+  color: #2980b9;
+  font-size: 16px;
+}
+
+.btn-owner {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+
 .import-tabs {
   display: flex;
   gap: 8px;

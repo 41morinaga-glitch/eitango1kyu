@@ -177,6 +177,10 @@ abhor
         ここに登録した単語は「サンプル単語を読み込む」時に<strong>常に一緒に読み込まれます</strong>。<br>
         「登録単語」の全削除では消えません。レベルごとに別管理されます。
       </p>
+      <div class="shared-status" id="sharedStatus">
+        🌐 現在の共有サンプル: <strong id="sharedCount">読込中…</strong> 件（全員がアクセス可能）
+        <button type="button" class="btn btn-sub btn-owner" id="syncSharedBtn" title="現在のマイサンプルを共有ファイルとして書き出します（オーナー専用）">🌐 共有ファイルを書き出す（オーナー用）</button>
+      </div>
       <form id="msForm">
         <label>
           <span>単語 <em>*</em></span>

@@ -68,6 +68,32 @@ function sampleFor(lv) {
   return typeof WORDS_1KYU !== "undefined" ? WORDS_1KYU : [];
 }
 
+/* 共有サンプル（リポジトリ上の shared_{level}.json を全員が読み込む。書込はオーナーのみgit push）*/
+const sharedData = { "1kyu": [], "2kyu": [] };
+let sharedReady = false;
+
+async function loadShared() {
+  const levels = ["1kyu", "2kyu"];
+  await Promise.all(levels.map(async lv => {
+    try {
+      const res = await fetch(`shared_${lv}.json?t=${Date.now()}`, { cache: "no-cache" });
+      if (!res.ok) throw new Error("fetch failed");
+      const data = await res.json();
+      if (Array.isArray(data)) sharedData[lv] = data;
+    } catch (e) {
+      sharedData[lv] = [];
+    }
+  }));
+  sharedReady = true;
+  updateSharedBadge();
+}
+
+function updateSharedBadge() {
+  const el = document.getElementById("sharedCount");
+  if (!el) return;
+  el.textContent = sharedReady ? sharedData[level].length : "読込中…";
+}
+
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
@@ -621,17 +647,22 @@ function parseCSVLine(line) {
 document.getElementById("loadSampleBtn").addEventListener("click", () => {
   const lvName = level === "2kyu" ? "英検2級" : "英検1級";
   const builtIn = sampleFor(level);
+  const shared = sharedData[level] || [];
   const myCount = mySample.length;
-  const total = builtIn.length + myCount;
-  const msg = myCount > 0
-    ? `${lvName}のサンプル単語（${builtIn.length}件）＋ マイサンプル（${myCount}件）＝ 計${total}件を既存データに追加します。よろしいですか？`
-    : `${lvName}のサンプル単語 ${builtIn.length}件を既存データに追加します。よろしいですか？`;
+  const total = builtIn.length + shared.length + myCount;
+  const parts = [`内蔵 ${builtIn.length}件`];
+  if (shared.length) parts.push(`🌐 共有 ${shared.length}件`);
+  if (myCount) parts.push(`⭐ マイ ${myCount}件`);
+  const msg = `${lvName}のサンプル（${parts.join(" + ")} = 計${total}件）を既存データに追加します。よろしいですか？`;
   if (!confirm(msg)) return;
-  const toAdd = [...builtIn, ...mySample].map(w => ({
+  const toAdd = [...builtIn, ...shared, ...mySample].map(w => ({
     id: uid(),
-    word: w.word, pos: w.pos, meaning: w.meaning,
-    example: w.example, exampleJa: w.exampleJa,
-  }));
+    word: w.word || "",
+    pos: w.pos || "",
+    meaning: w.meaning || "",
+    example: w.example || "",
+    exampleJa: w.exampleJa || "",
+  })).filter(w => w.word && w.meaning);
   words = words.concat(toAdd);
   saveWords();
   renderList();
@@ -1015,6 +1046,24 @@ document.getElementById("msImportFile").addEventListener("change", async e => {
   e.target.value = "";
 });
 
+document.getElementById("syncSharedBtn").addEventListener("click", () => {
+  if (mySample.length === 0) {
+    alert("マイサンプルが空です。まず単語を追加してください。");
+    return;
+  }
+  if (!confirm(
+    `オーナー用の操作です。\n\n現在のマイサンプル ${mySample.length}件 を共有ファイル shared_${level}.json としてダウンロードします。\n\nダウンロード後、このファイルをリポジトリの shared_${level}.json と置き換えて git push してください。\n全員に反映されます。`
+  )) return;
+  const data = mySample.map(({ id, ...rest }) => rest);
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `shared_${level}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
 document.getElementById("msClearBtn").addEventListener("click", () => {
   if (mySample.length === 0) { alert("マイサンプルはすでに空です。"); return; }
   if (!confirm(`マイサンプル ${mySample.length}件を全て削除します。元に戻せません。よろしいですか？`)) return;
@@ -1051,6 +1100,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     resetStudy();
     renderList();
     renderMySampleList();
+    updateSharedBadge();
   });
 });
 
@@ -1059,3 +1109,4 @@ applyLevelUI();
 resetStudy();
 renderList();
 renderMySampleList();
+loadShared();
