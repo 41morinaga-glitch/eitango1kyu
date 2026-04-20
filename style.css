@@ -199,6 +199,32 @@ h2 {
   transform: translateX(18px);
 }
 
+.hide-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: #ecf0f1;
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.hide-btn:hover {
+  background: #d4edda;
+}
+
+.hide-btn:active {
+  transform: scale(0.9);
+}
+
 .speak-btn {
   position: absolute;
   top: 14px;
@@ -241,7 +267,7 @@ h2 {
   height: 340px;
   margin-bottom: 28px;
   cursor: pointer;
-  touch-action: pan-y;
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -258,6 +284,12 @@ h2 {
 .card.swipe-in-right {
   animation: swipeInRight 0.25s ease-out;
 }
+.card.swipe-down {
+  animation: swipeDown 0.28s ease-out forwards;
+}
+.card.swipe-in-top {
+  animation: swipeInTop 0.28s ease-out;
+}
 
 @keyframes swipeLeft {
   to { transform: translateX(-120%); opacity: 0; }
@@ -272,6 +304,13 @@ h2 {
 @keyframes swipeInRight {
   from { transform: translateX(120%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
+}
+@keyframes swipeDown {
+  to { transform: translateY(100%) scale(0.9); opacity: 0; }
+}
+@keyframes swipeInTop {
+  from { transform: translateY(-80%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .card-inner {
@@ -769,6 +808,7 @@ h2 {
   .progress { font-size: 17px; }
   .speak-toggle { font-size: 13px; }
   .speak-btn { width: 42px; height: 42px; font-size: 19px; top: 10px; right: 10px; }
+  .hide-btn { width: 42px; height: 42px; font-size: 19px; top: 10px; left: 10px; }
   .card { height: 300px; }
   .word { font-size: 42px; }
   .meaning { font-size: 26px; }

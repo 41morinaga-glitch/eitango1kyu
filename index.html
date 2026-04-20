@@ -43,8 +43,9 @@
       <div class="card-inner" id="cardInner">
         <div class="card-face card-front" id="faceFront">
           <button class="speak-btn" id="speakBtn" title="発音を聞く" aria-label="発音">🔊</button>
+          <button class="hide-btn" id="hideBtn" title="覚えた（非表示にする）" aria-label="覚えた">✅</button>
           <div class="front-content" id="frontContent"></div>
-          <div class="hint" id="frontHint">タップで意味を表示</div>
+          <div class="hint" id="frontHint">タップで意味を表示 / ↓スワイプで覚えた</div>
         </div>
         <div class="card-face card-back" id="faceBack">
           <button class="speak-btn" id="speakBtnBack" title="例文を読む" aria-label="例文を読む">🔊</button>
@@ -233,6 +234,18 @@ abhor
         CSV形式: <code>word,pos,meaning,example,exampleJa</code>（1行目はヘッダー）<br>
         データはお使いのブラウザ内（localStorage）に保存されます。
       </p>
+    </section>
+
+    <section class="panel">
+      <h2>✅ 覚えた単語（非表示） <span class="count" id="hiddenCount">0</span></h2>
+      <p class="note">
+        カードを下にスワイプ、または ✅ ボタンで隠した単語がここに表示されます。<br>
+        「戻す」で学習リストに戻せます。レベルごとに別管理です。
+      </p>
+      <ul class="word-list" id="hiddenList"></ul>
+      <div class="io-buttons" style="margin-top: 10px;">
+        <button type="button" class="btn btn-sub" id="unhideAllBtn">↺ すべて再表示</button>
+      </div>
     </section>
 
     <section class="panel">

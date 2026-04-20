@@ -3,6 +3,7 @@ const MODE_KEY = "eitango.mode.v1";
 const LEVEL_KEY = "eitango.level.v1";
 const storageKeyFor = lv => `eitango.words.${lv}.v1`;
 const mySampleKeyFor = lv => `eitango.mysample.${lv}.v1`;
+const hiddenKeyFor = lv => `eitango.hidden.${lv}.v1`;
 
 const LEVEL_TITLE = { "1kyu": "英検1級 英単語", "2kyu": "英検2級 英単語" };
 
@@ -32,6 +33,7 @@ let level = localStorage.getItem(LEVEL_KEY) === "2kyu" ? "2kyu" : "1kyu";
 
 let words = loadWords();
 let mySample = loadMySample();
+let hiddenIds = loadHidden();
 let list = [];
 let index = 0;
 let editingId = null;
@@ -61,6 +63,18 @@ function loadMySample() {
 
 function saveMySample() {
   localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
+}
+
+function loadHidden() {
+  try {
+    const raw = localStorage.getItem(hiddenKeyFor(level));
+    if (raw) return new Set(JSON.parse(raw));
+  } catch (e) {}
+  return new Set();
+}
+
+function saveHidden() {
+  localStorage.setItem(hiddenKeyFor(level), JSON.stringify([...hiddenIds]));
 }
 
 function sampleFor(lv) {
@@ -216,6 +230,11 @@ speakBtn.addEventListener("click", e => {
   e.stopPropagation();
   if (list.length > 0) speakWithIndicator(list[index].word, speakBtn);
 });
+
+document.getElementById("hideBtn").addEventListener("click", e => {
+  e.stopPropagation();
+  hideCurrent();
+});
 speakBtnBack.addEventListener("click", e => {
   e.stopPropagation();
   if (list.length > 0) {
@@ -226,9 +245,28 @@ speakBtnBack.addEventListener("click", e => {
 });
 
 function resetStudy() {
-  list = [...words].reverse();
+  list = [...words].reverse().filter(w => !hiddenIds.has(w.id));
   index = 0;
   render();
+}
+
+function hideCurrent() {
+  if (list.length === 0) return;
+  const w = list[index];
+  hiddenIds.add(w.id);
+  saveHidden();
+  list.splice(index, 1);
+  if (index >= list.length) index = Math.max(0, list.length - 1);
+  card.classList.add("swipe-down");
+  setTimeout(() => {
+    card.classList.remove("swipe-down");
+    render();
+    if (list.length > 0) {
+      card.classList.add("swipe-in-top");
+      setTimeout(() => card.classList.remove("swipe-in-top"), 280);
+    }
+    renderHiddenList();
+  }, 240);
 }
 
 function renderFaces(w) {
@@ -353,9 +391,14 @@ card.addEventListener("touchmove", e => {
 card.addEventListener("touchend", e => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   const dy = e.changedTouches[0].clientY - touchStartY;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  if (absDx > 60 && absDx > absDy * 1.5) {
+    touchMoved = true;
     if (dx < 0) swipeNext();
     else swipePrev();
+  } else if (absDy > 70 && absDy > absDx * 1.3 && dy > 0) {
+    touchMoved = true;
+    hideCurrent();
   }
 });
 
@@ -371,10 +414,14 @@ card.addEventListener("pointerup", e => {
   const dx = e.clientX - pointerStartX;
   const dy = e.clientY - pointerStartY;
   pointerStartX = null;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+  const absDx = Math.abs(dx), absDy = Math.abs(dy);
+  if (absDx > 60 && absDx > absDy * 1.5) {
     touchMoved = true;
     if (dx < 0) swipeNext();
     else swipePrev();
+  } else if (absDy > 70 && absDy > absDx * 1.3 && dy > 0) {
+    touchMoved = true;
+    hideCurrent();
   }
 });
 
@@ -540,8 +587,10 @@ function renderList() {
     delBtn.onclick = () => {
       if (!confirm(`「${w.word}」を削除しますか？`)) return;
       words = words.filter(x => x.id !== w.id);
+      if (hiddenIds.has(w.id)) { hiddenIds.delete(w.id); saveHidden(); }
       saveWords();
       renderList();
+      renderHiddenList();
     };
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
@@ -553,6 +602,63 @@ function renderList() {
 }
 
 searchInput.addEventListener("input", renderList);
+
+/* ========== 覚えた単語（非表示）リスト ========== */
+const hiddenListEl = document.getElementById("hiddenList");
+const hiddenCountEl = document.getElementById("hiddenCount");
+
+function renderHiddenList() {
+  hiddenCountEl.textContent = hiddenIds.size;
+  hiddenListEl.innerHTML = "";
+  const hiddenWords = words.filter(w => hiddenIds.has(w.id));
+  if (hiddenWords.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty-list";
+    li.textContent = "覚えた単語はまだありません";
+    hiddenListEl.appendChild(li);
+    return;
+  }
+  hiddenWords.slice().reverse().forEach(w => {
+    const li = document.createElement("li");
+    const info = document.createElement("div");
+    info.className = "info";
+    const wd = document.createElement("div");
+    wd.className = "w";
+    wd.textContent = w.word;
+    const md = document.createElement("div");
+    md.className = "m";
+    md.textContent = w.meaning;
+    info.appendChild(wd);
+    info.appendChild(md);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const restoreBtn = document.createElement("button");
+    restoreBtn.type = "button";
+    restoreBtn.className = "btn btn-sub";
+    restoreBtn.style.fontSize = "13px";
+    restoreBtn.style.padding = "8px 12px";
+    restoreBtn.textContent = "↺ 戻す";
+    restoreBtn.onclick = () => {
+      hiddenIds.delete(w.id);
+      saveHidden();
+      renderHiddenList();
+    };
+    actions.appendChild(restoreBtn);
+
+    li.appendChild(info);
+    li.appendChild(actions);
+    hiddenListEl.appendChild(li);
+  });
+}
+
+document.getElementById("unhideAllBtn").addEventListener("click", () => {
+  if (hiddenIds.size === 0) { alert("非表示の単語はありません。"); return; }
+  if (!confirm(`覚えた単語 ${hiddenIds.size}件 をすべて学習リストに戻します。よろしいですか？`)) return;
+  hiddenIds = new Set();
+  saveHidden();
+  renderHiddenList();
+});
 
 /* ========== データ入出力 ========== */
 document.getElementById("exportBtn").addEventListener("click", () => {
@@ -674,8 +780,11 @@ document.getElementById("clearAllBtn").addEventListener("click", () => {
   if (!confirm("全ての単語を削除します。元に戻せません。本当によろしいですか？")) return;
   if (!confirm("本当に全て削除しますか？（最終確認）")) return;
   words = [];
+  hiddenIds = new Set();
   saveWords();
+  saveHidden();
   renderList();
+  renderHiddenList();
 });
 
 /* ========== 教科書から取り込み ========== */
@@ -1094,6 +1203,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     localStorage.setItem(LEVEL_KEY, level);
     words = loadWords();
     mySample = loadMySample();
+    hiddenIds = loadHidden();
     applyLevelUI();
     exitEditMode();
     msExitEdit();
@@ -1101,6 +1211,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     resetStudy();
     renderList();
     renderMySampleList();
+    renderHiddenList();
     updateSharedBadge();
   });
 });
@@ -1110,4 +1221,5 @@ applyLevelUI();
 resetStudy();
 renderList();
 renderMySampleList();
+renderHiddenList();
 loadShared();
