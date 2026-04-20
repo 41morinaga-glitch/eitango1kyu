@@ -196,8 +196,11 @@ document.querySelectorAll(".tab").forEach(tab => {
     document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
     tab.classList.add("active");
     document.getElementById(tab.dataset.view + "View").classList.add("active");
-    if (tab.dataset.view === "study") resetStudy();
-    else renderList();
+    const v = tab.dataset.view;
+    if (v === "study") resetStudy();
+    else if (v === "manage") { renderList(); renderHiddenList(); }
+    else if (v === "add") { renderMySampleList(); }
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 

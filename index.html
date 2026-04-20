@@ -16,7 +16,8 @@
     </div>
     <nav class="tabs">
       <button class="tab active" data-view="study">学習</button>
-      <button class="tab" data-view="manage">単語管理</button>
+      <button class="tab" data-view="add">➕ 追加・取込</button>
+      <button class="tab" data-view="manage">📋 単語管理</button>
     </nav>
   </header>
 
@@ -55,7 +56,7 @@
     </div>
 
     <div class="empty-msg" id="emptyMsg" hidden>
-      単語がありません。<br>「単語管理」から追加してください。
+      単語がありません。<br>「➕ 追加・取込」から追加してください。
     </div>
 
     <div class="controls">
@@ -70,8 +71,8 @@
     </div>
   </main>
 
-  <!-- 管理ビュー -->
-  <main id="manageView" class="view">
+  <!-- 追加・取込ビュー -->
+  <main id="addView" class="view">
     <section class="panel">
       <h2 id="formTitle">単語を追加</h2>
       <form id="wordForm">
@@ -228,12 +229,25 @@ abhor
           <input type="file" id="importFile" accept=".json,.csv" hidden>
         </label>
         <button class="btn btn-sub" id="loadSampleBtn">📚 サンプル単語を読み込む</button>
-        <button class="btn btn-danger" id="clearAllBtn">🗑 全削除</button>
       </div>
       <p class="note">
         CSV形式: <code>word,pos,meaning,example,exampleJa</code>（1行目はヘッダー）<br>
         データはお使いのブラウザ内（localStorage）に保存されます。
       </p>
+    </section>
+  </main>
+
+  <!-- 単語管理ビュー -->
+  <main id="manageView" class="view">
+    <section class="panel">
+      <h2>📋 登録単語一覧 <span class="count" id="listCount">0</span></h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 単語・意味で検索">
+      </div>
+      <ul class="word-list" id="wordList"></ul>
+      <div class="io-buttons" style="margin-top: 14px;">
+        <button type="button" class="btn btn-danger" id="clearAllBtn">🗑 全削除</button>
+      </div>
     </section>
 
     <section class="panel">
@@ -246,14 +260,6 @@ abhor
       <div class="io-buttons" style="margin-top: 10px;">
         <button type="button" class="btn btn-sub" id="unhideAllBtn">↺ すべて再表示</button>
       </div>
-    </section>
-
-    <section class="panel">
-      <h2>登録単語 <span class="count" id="listCount">0</span></h2>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 単語・意味で検索">
-      </div>
-      <ul class="word-list" id="wordList"></ul>
     </section>
   </main>
 </div>
