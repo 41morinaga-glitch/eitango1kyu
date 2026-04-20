@@ -462,6 +462,11 @@ h2 {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
+.panel.highlight {
+  background: #fffbf0;
+  border: 2px solid #f9e6b3;
+}
+
 #wordForm {
   display: flex;
   flex-direction: column;

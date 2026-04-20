@@ -2,6 +2,7 @@ const SPEAK_KEY = "eitango.speak.v1";
 const MODE_KEY = "eitango.mode.v1";
 const LEVEL_KEY = "eitango.level.v1";
 const storageKeyFor = lv => `eitango.words.${lv}.v1`;
+const mySampleKeyFor = lv => `eitango.mysample.${lv}.v1`;
 
 const LEVEL_TITLE = { "1kyu": "英検1級 英単語", "2kyu": "英検2級 英単語" };
 
@@ -30,9 +31,11 @@ let level = localStorage.getItem(LEVEL_KEY) === "2kyu" ? "2kyu" : "1kyu";
 })();
 
 let words = loadWords();
+let mySample = loadMySample();
 let list = [];
 let index = 0;
 let editingId = null;
+let msEditingId = null;
 let autoSpeak = localStorage.getItem(SPEAK_KEY) === "1";
 let mode = localStorage.getItem(MODE_KEY) === "jaen" ? "jaen" : "enja";
 
@@ -46,6 +49,18 @@ function loadWords() {
 
 function saveWords() {
   localStorage.setItem(storageKeyFor(level), JSON.stringify(words));
+}
+
+function loadMySample() {
+  try {
+    const raw = localStorage.getItem(mySampleKeyFor(level));
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return [];
+}
+
+function saveMySample() {
+  localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
 }
 
 function sampleFor(lv) {
@@ -605,12 +620,22 @@ function parseCSVLine(line) {
 
 document.getElementById("loadSampleBtn").addEventListener("click", () => {
   const lvName = level === "2kyu" ? "英検2級" : "英検1級";
-  if (!confirm(`${lvName}のサンプル単語を既存データに追加します。よろしいですか？`)) return;
-  const sample = sampleFor(level).map(w => ({ id: uid(), ...w }));
-  words = words.concat(sample);
+  const builtIn = sampleFor(level);
+  const myCount = mySample.length;
+  const total = builtIn.length + myCount;
+  const msg = myCount > 0
+    ? `${lvName}のサンプル単語（${builtIn.length}件）＋ マイサンプル（${myCount}件）＝ 計${total}件を既存データに追加します。よろしいですか？`
+    : `${lvName}のサンプル単語 ${builtIn.length}件を既存データに追加します。よろしいですか？`;
+  if (!confirm(msg)) return;
+  const toAdd = [...builtIn, ...mySample].map(w => ({
+    id: uid(),
+    word: w.word, pos: w.pos, meaning: w.meaning,
+    example: w.example, exampleJa: w.exampleJa,
+  }));
+  words = words.concat(toAdd);
   saveWords();
   renderList();
-  alert(`${lvName}サンプル ${sample.length}件を追加しました。`);
+  alert(`${toAdd.length}件を追加しました。`);
 });
 
 document.getElementById("clearAllBtn").addEventListener("click", () => {
@@ -619,6 +644,173 @@ document.getElementById("clearAllBtn").addEventListener("click", () => {
   words = [];
   saveWords();
   renderList();
+});
+
+/* ========== マイサンプル ========== */
+const msForm = document.getElementById("msForm");
+const msWord = document.getElementById("msWord");
+const msPos = document.getElementById("msPos");
+const msMeaning = document.getElementById("msMeaning");
+const msExample = document.getElementById("msExample");
+const msExampleJa = document.getElementById("msExampleJa");
+const msSaveBtn = document.getElementById("msSaveBtn");
+const msCancelBtn = document.getElementById("msCancelBtn");
+const msListEl = document.getElementById("msList");
+const msCount = document.getElementById("msCount");
+
+msForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const data = {
+    word: msWord.value.trim(),
+    pos: msPos.value.trim(),
+    meaning: msMeaning.value.trim(),
+    example: msExample.value.trim(),
+    exampleJa: msExampleJa.value.trim(),
+  };
+  if (!data.word || !data.meaning) return;
+  if (msEditingId) {
+    const i = mySample.findIndex(w => w.id === msEditingId);
+    if (i >= 0) mySample[i] = { ...mySample[i], ...data };
+    msExitEdit();
+  } else {
+    mySample.push({ id: uid(), ...data });
+  }
+  saveMySample();
+  msForm.reset();
+  msWord.focus();
+  renderMySampleList();
+});
+
+msCancelBtn.addEventListener("click", () => msExitEdit());
+
+function msEnterEdit(id) {
+  const w = mySample.find(x => x.id === id);
+  if (!w) return;
+  msEditingId = id;
+  msSaveBtn.textContent = "更新する";
+  msCancelBtn.hidden = false;
+  msWord.value = w.word;
+  msPos.value = w.pos || "";
+  msMeaning.value = w.meaning;
+  msExample.value = w.example || "";
+  msExampleJa.value = w.exampleJa || "";
+  msWord.focus();
+  msForm.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function msExitEdit() {
+  msEditingId = null;
+  msSaveBtn.textContent = "マイサンプルに追加";
+  msCancelBtn.hidden = true;
+  msForm.reset();
+}
+
+function renderMySampleList() {
+  msCount.textContent = mySample.length;
+  msListEl.innerHTML = "";
+  if (mySample.length === 0) {
+    const li = document.createElement("li");
+    li.className = "empty-list";
+    li.textContent = "マイサンプルはまだ空です";
+    msListEl.appendChild(li);
+    return;
+  }
+  mySample.forEach(w => {
+    const li = document.createElement("li");
+    const info = document.createElement("div");
+    info.className = "info";
+    const wd = document.createElement("div");
+    wd.className = "w";
+    wd.textContent = w.word;
+    const md = document.createElement("div");
+    md.className = "m";
+    md.textContent = w.meaning;
+    info.appendChild(wd);
+    info.appendChild(md);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "icon-btn";
+    editBtn.textContent = "✏️";
+    editBtn.title = "編集";
+    editBtn.onclick = () => msEnterEdit(w.id);
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "icon-btn";
+    delBtn.textContent = "🗑";
+    delBtn.title = "削除";
+    delBtn.onclick = () => {
+      if (!confirm(`マイサンプルから「${w.word}」を削除しますか？`)) return;
+      mySample = mySample.filter(x => x.id !== w.id);
+      saveMySample();
+      renderMySampleList();
+    };
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+
+    li.appendChild(info);
+    li.appendChild(actions);
+    msListEl.appendChild(li);
+  });
+}
+
+document.getElementById("msExportBtn").addEventListener("click", () => {
+  const data = mySample.map(({ id, ...rest }) => rest);
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `mysample_${level}_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("msImportFile").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const text = await file.text();
+  try {
+    let imported = [];
+    if (file.name.endsWith(".json")) {
+      const parsed = JSON.parse(text);
+      if (!Array.isArray(parsed)) throw new Error("配列形式ではありません");
+      imported = parsed;
+    } else if (file.name.endsWith(".csv")) {
+      imported = parseCSV(text);
+    }
+    const normalized = imported
+      .map(w => ({
+        id: uid(),
+        word: (w.word || "").trim(),
+        pos: (w.pos || "").trim(),
+        meaning: (w.meaning || "").trim(),
+        example: (w.example || "").trim(),
+        exampleJa: (w.exampleJa || "").trim(),
+      }))
+      .filter(w => w.word && w.meaning);
+    if (normalized.length === 0) { alert("有効な単語が見つかりませんでした。"); return; }
+    const replaceAll = confirm(
+      `マイサンプルに${normalized.length}件読み込みます。\n「OK」→ 既存を置き換え\n「キャンセル」→ 追加する`
+    );
+    if (replaceAll) mySample = normalized;
+    else mySample = mySample.concat(normalized);
+    saveMySample();
+    renderMySampleList();
+    alert(`${normalized.length}件を読み込みました。`);
+  } catch (err) {
+    alert("ファイルの読み込みに失敗しました: " + err.message);
+  }
+  e.target.value = "";
+});
+
+document.getElementById("msClearBtn").addEventListener("click", () => {
+  if (mySample.length === 0) { alert("マイサンプルはすでに空です。"); return; }
+  if (!confirm(`マイサンプル ${mySample.length}件を全て削除します。元に戻せません。よろしいですか？`)) return;
+  mySample = [];
+  saveMySample();
+  renderMySampleList();
 });
 
 /* ========== レベル切替 ========== */
@@ -641,11 +833,14 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     level = btn.dataset.level;
     localStorage.setItem(LEVEL_KEY, level);
     words = loadWords();
+    mySample = loadMySample();
     applyLevelUI();
     exitEditMode();
+    msExitEdit();
     searchInput.value = "";
     resetStudy();
     renderList();
+    renderMySampleList();
   });
 });
 
@@ -653,3 +848,4 @@ document.querySelectorAll(".level-btn").forEach(btn => {
 applyLevelUI();
 resetStudy();
 renderList();
+renderMySampleList();

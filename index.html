@@ -101,6 +101,49 @@
       </form>
     </section>
 
+    <section class="panel highlight">
+      <h2>⭐ マイサンプル <span class="count" id="msCount">0</span></h2>
+      <p class="note">
+        ここに登録した単語は「サンプル単語を読み込む」時に<strong>常に一緒に読み込まれます</strong>。<br>
+        「登録単語」の全削除では消えません。レベルごとに別管理されます。
+      </p>
+      <form id="msForm">
+        <label>
+          <span>単語 <em>*</em></span>
+          <input type="text" id="msWord" required placeholder="例: abate">
+        </label>
+        <label>
+          <span>品詞</span>
+          <input type="text" id="msPos" placeholder="例: 動詞">
+        </label>
+        <label>
+          <span>意味 <em>*</em></span>
+          <input type="text" id="msMeaning" required placeholder="例: 和らぐ、弱まる">
+        </label>
+        <label>
+          <span>例文（英語）</span>
+          <input type="text" id="msExample">
+        </label>
+        <label>
+          <span>例文（日本語訳）</span>
+          <input type="text" id="msExampleJa">
+        </label>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary" id="msSaveBtn">マイサンプルに追加</button>
+          <button type="button" class="btn btn-sub" id="msCancelBtn" hidden>キャンセル</button>
+        </div>
+      </form>
+      <ul class="word-list" id="msList"></ul>
+      <div class="io-buttons" style="margin-top: 14px;">
+        <button type="button" class="btn btn-sub" id="msExportBtn">📥 マイサンプルを書き出す</button>
+        <label class="btn btn-sub file-label">
+          📤 マイサンプルを読み込む
+          <input type="file" id="msImportFile" accept=".json,.csv" hidden>
+        </label>
+        <button type="button" class="btn btn-danger" id="msClearBtn">🗑 マイサンプル全削除</button>
+      </div>
+    </section>
+
     <section class="panel">
       <h2>データの入出力</h2>
       <div class="io-buttons">
