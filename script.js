@@ -226,7 +226,7 @@ speakBtnBack.addEventListener("click", e => {
 });
 
 function resetStudy() {
-  list = [...words];
+  list = [...words].reverse();
   index = 0;
   render();
 }
