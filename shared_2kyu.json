@@ -222,5 +222,124 @@
     "meaning": "…かどうか",
     "example": "",
     "exampleJa": ""
+  },
+  {
+    "word": "form",
+    "pos": "動詞",
+    "meaning": "を組織する、を形作る",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "cancel",
+    "pos": "動詞",
+    "meaning": "を取り消す",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "relax",
+    "pos": "動詞",
+    "meaning": "くつろぐ、緩む、をくつろがせる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "add",
+    "pos": "動詞",
+    "meaning": "を加える",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "contact",
+    "pos": "動詞",
+    "meaning": "と連絡を取る、と接触する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "purchase",
+    "pos": "動詞",
+    "meaning": "（高価な物、大量の物）を購入する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "expect",
+    "pos": "動詞",
+    "meaning": "を予期する、を期待する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "continue",
+    "pos": "動詞",
+    "meaning": "を続ける",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "require",
+    "pos": "動詞",
+    "meaning": "を要求する、が必要とする",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "replace",
+    "pos": "動詞",
+    "meaning": "を取り替える",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "suffer",
+    "pos": "動詞",
+    "meaning": "苦しむ",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "fix",
+    "pos": "動詞",
+    "meaning": "を修理する、固定する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "serve",
+    "pos": "動詞",
+    "meaning": "食事を出す",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "include",
+    "pos": "動詞",
+    "meaning": "を含む",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "attend",
+    "pos": "動詞",
+    "meaning": "に出席する、に（定期的に）通う",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "quit",
+    "pos": "動詞",
+    "meaning": "をやめる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "prefer",
+    "pos": "動詞",
+    "meaning": "の方を好む",
+    "example": "",
+    "exampleJa": ""
   }
 ]
