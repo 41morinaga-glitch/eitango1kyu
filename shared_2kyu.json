@@ -5,5 +5,222 @@
     "meaning": "を引き出す",
     "example": "",
     "exampleJa": ""
+  },
+  {
+    "word": "tour",
+    "pos": "名詞",
+    "meaning": "見学",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "taste",
+    "pos": "名詞",
+    "meaning": "好み、味、味覚",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "benefit",
+    "pos": "名詞",
+    "meaning": "利益",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "practice",
+    "pos": "名詞",
+    "meaning": "実践、練習",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "activity",
+    "pos": "名詞",
+    "meaning": "活動",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "subject",
+    "pos": "名詞",
+    "meaning": "話題、教科",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "professor",
+    "pos": "名詞",
+    "meaning": "教授",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "memory",
+    "pos": "名詞",
+    "meaning": "記憶、思い出",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "effect",
+    "pos": "名詞",
+    "meaning": "影響、効果",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "patient",
+    "pos": "名詞",
+    "meaning": "患者",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "project",
+    "pos": "名詞",
+    "meaning": "計画、事業、学習課題",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "article",
+    "pos": "名詞",
+    "meaning": "記事、条項、1品",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "material",
+    "pos": "名詞",
+    "meaning": "材料、資料",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "bill",
+    "pos": "名詞",
+    "meaning": "請求書、法案、紙幣",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "technology",
+    "pos": "名詞",
+    "meaning": "科学技術、テクノロジー",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "security",
+    "pos": "名詞",
+    "meaning": "安全、警備、安心",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "discount",
+    "pos": "名詞",
+    "meaning": "割引",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "review",
+    "pos": "名詞",
+    "meaning": "批評、(再)調査",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "flight",
+    "pos": "名詞",
+    "meaning": "定期航空便、飛行",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "smartphone",
+    "pos": "名詞",
+    "meaning": "スマートフォン",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "supplement",
+    "pos": "名詞",
+    "meaning": "サプリメント、栄養補助剤",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "chemical",
+    "pos": "形容詞",
+    "meaning": "科学の",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "ancient",
+    "pos": "形容詞",
+    "meaning": "古代",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "common",
+    "pos": "形容詞",
+    "meaning": "共通の、普通の",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "likely",
+    "pos": "形容詞",
+    "meaning": "〜しそうで、ありそうな",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "recently",
+    "pos": "副詞",
+    "meaning": "最近",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "probably",
+    "pos": "副詞",
+    "meaning": "多分、きっと",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "actually",
+    "pos": "副詞",
+    "meaning": "実は、実際には",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "though",
+    "pos": "接続詞",
+    "meaning": "…だけれども、もっとも…ではあるが",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "while",
+    "pos": "接続詞",
+    "meaning": "…している間に、…ではあるものの",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "whether",
+    "pos": "接続詞",
+    "meaning": "…かどうか",
+    "example": "",
+    "exampleJa": ""
   }
 ]
