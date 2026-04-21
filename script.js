@@ -238,25 +238,50 @@ document.getElementById("linkFolderBtn").addEventListener("click", async () => {
     folderHandle = handle;
     await idbSet("folder", handle);
     updateFolderStatus();
-    // 既存の shared_{level}.json を読んで、ローカルより件数が多ければ取込を提案
-    const content = await readFolderFile(`shared_${level}.json`);
-    if (content) {
+
+    // フォルダ内の shared_{level}.json を読み取り
+    let folderContent = null;
+    try { folderContent = await readFolderFile(`shared_${level}.json`); } catch (e) {}
+    let parsed = [];
+    if (folderContent) {
       try {
-        const parsed = JSON.parse(content);
-        if (Array.isArray(parsed) && parsed.length > mySample.length) {
-          const doLoad = confirm(
-            `📁 フォルダの shared_${level}.json に ${parsed.length}件 あります（ローカルは ${mySample.length}件）。\n\n「OK」→ フォルダの内容で置き換える（推奨）\n「キャンセル」→ ローカルを維持して上書き`
-          );
-          if (doLoad) {
-            mySample = parsed.map(w => ({ id: uid(), ...w }));
-            localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
-          }
-        }
+        const p = JSON.parse(folderContent);
+        if (Array.isArray(p)) parsed = p;
       } catch (e) {}
     }
-    renderMySampleList();
-    autoWriteShared();
-    alert(`✅ ${handle.name} と連携しました。\n以降の変更は自動保存されます。`);
+
+    // 安全な併合ロジック（空で上書きしない）
+    if (parsed.length > 0 && mySample.length === 0) {
+      // フォルダに内容あり、ローカル空 → 自動で取り込み（プロンプト無し）
+      mySample = parsed.map(w => ({ id: uid(), ...w }));
+      localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
+      renderMySampleList();
+      setSyncStatus("saved");
+      alert(`✅ ${handle.name} と連携し、フォルダから ${parsed.length}件 を取り込みました。`);
+    } else if (parsed.length === 0 && mySample.length > 0) {
+      // フォルダ空、ローカルに内容あり → ローカルを一度だけフォルダに書き込み
+      autoWriteShared();
+      alert(`✅ ${handle.name} と連携し、ローカルの ${mySample.length}件 をフォルダに書き込みました。`);
+    } else if (parsed.length > 0 && mySample.length > 0) {
+      // 両方に内容あり → ユーザーが選ぶ。キャンセル時は「ローカル維持」（上書きしない）
+      const useFolder = confirm(
+        `📁 フォルダに ${parsed.length}件、ローカルに ${mySample.length}件 あります。\n\n` +
+        `「OK」 → フォルダの内容で置き換える\n` +
+        `「キャンセル」→ ローカルを維持（フォルダは次の追加時に更新）`
+      );
+      if (useFolder) {
+        mySample = parsed.map(w => ({ id: uid(), ...w }));
+        localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
+        renderMySampleList();
+      }
+      // 注: キャンセル時も autoWriteShared は呼ばない（空上書き防止の意図は無いが、誤操作リスク最小化）
+      setSyncStatus("saved");
+      alert(`✅ ${handle.name} と連携しました。`);
+    } else {
+      // 両方空
+      setSyncStatus("saved");
+      alert(`✅ ${handle.name} と連携しました。単語を追加すると自動保存されます。`);
+    }
   } catch (e) {
     if (e.name !== "AbortError") alert("連携に失敗しました: " + e.message);
   }
