@@ -263,19 +263,21 @@ document.getElementById("linkFolderBtn").addEventListener("click", async () => {
       autoWriteShared();
       alert(`✅ ${handle.name} と連携し、ローカルの ${mySample.length}件 をフォルダに書き込みました。`);
     } else if (parsed.length > 0 && mySample.length > 0) {
-      // 両方に内容あり → ユーザーが選ぶ。キャンセル時は「ローカル維持」（上書きしない）
+      // 両方に内容あり → ユーザーが選ぶ
       const useFolder = confirm(
         `📁 フォルダに ${parsed.length}件、ローカルに ${mySample.length}件 あります。\n\n` +
-        `「OK」 → フォルダの内容で置き換える\n` +
-        `「キャンセル」→ ローカルを維持（フォルダは次の追加時に更新）`
+        `「OK」 → フォルダの内容で置き換える（このデバイスに取り込み）\n` +
+        `「キャンセル」→ ローカルでフォルダを上書き（このデバイスの内容を公開）`
       );
       if (useFolder) {
         mySample = parsed.map(w => ({ id: uid(), ...w }));
         localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
         renderMySampleList();
+        setSyncStatus("saved");
+      } else {
+        // ローカルをフォルダに書込み（このデバイスが情報源になる）
+        autoWriteShared();
       }
-      // 注: キャンセル時も autoWriteShared は呼ばない（空上書き防止の意図は無いが、誤操作リスク最小化）
-      setSyncStatus("saved");
       alert(`✅ ${handle.name} と連携しました。`);
     } else {
       // 両方空
@@ -293,7 +295,13 @@ document.getElementById("approveFolderBtn").addEventListener("click", async () =
     const perm = await folderHandle.requestPermission({ mode: "readwrite" });
     if (perm === "granted") {
       showReapprove(false);
-      autoWriteShared();
+      if (mySample.length === 0) {
+        const loaded = await loadMySampleFromFolderIfEmpty();
+        if (loaded) renderMySampleList();
+        setSyncStatus("saved");
+      } else {
+        autoWriteShared();
+      }
     } else {
       alert("権限が得られませんでした。もう一度お試しください。");
     }
@@ -1593,16 +1601,18 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     renderMySampleList();
     renderHiddenList();
     updateSharedBadge();
-    // フォルダ連携中 & ローカルが空 → フォルダから読み込み（書込はしない）
-    if (folderHandle && mySample.length === 0) {
-      const loaded = await loadMySampleFromFolderIfEmpty();
-      if (loaded) renderMySampleList();
-    }
-    // ステータス更新だけ（書込は trigger しない）
     if (folderHandle) {
+      if (mySample.length === 0) {
+        // ローカル空 → フォルダから読込み
+        const loaded = await loadMySampleFromFolderIfEmpty();
+        if (loaded) renderMySampleList();
+      } else {
+        // ローカルに内容あり → フォルダに同期（切替先レベルの shared_{level}.json を最新化）
+        autoWriteShared();
+      }
       try {
         const perm = await folderHandle.queryPermission({ mode: "readwrite" });
-        setSyncStatus(perm === "granted" ? "saved" : "need");
+        if (perm !== "granted") setSyncStatus("need");
       } catch (e) {}
     }
   });
