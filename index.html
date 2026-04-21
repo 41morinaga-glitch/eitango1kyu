@@ -201,10 +201,12 @@ abhor
       <div class="folder-link" id="folderLink">
         <div class="folder-link-info">
           <span id="folderStatusText">📁 フォルダ未連携（保存はブラウザ内）</span>
-          <span class="folder-hint" id="folderHint">連携するとマイサンプルが eitango1kyu フォルダに自動保存されます</span>
+          <span class="folder-hint" id="folderHint">連携すると追加時に自動で shared_{level}.json に書き込みます</span>
+          <span id="syncStatus" class="sync-status-line" hidden></span>
         </div>
         <div class="folder-link-buttons">
           <button type="button" class="btn btn-sub" id="linkFolderBtn">📁 フォルダと連携</button>
+          <button type="button" class="btn btn-sub" id="approveFolderBtn" hidden>🔓 再承認</button>
           <button type="button" class="btn btn-sub" id="unlinkFolderBtn" hidden>❌ 連携解除</button>
         </div>
       </div>

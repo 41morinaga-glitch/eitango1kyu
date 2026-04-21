@@ -567,7 +567,18 @@ h2 {
 .folder-link-buttons {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
+
+.sync-status-line {
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 600;
+}
+.sync-status-line.ok { color: #27ae60; }
+.sync-status-line.saving { color: #7f8c8d; }
+.sync-status-line.error { color: #e74c3c; }
+.sync-status-line.need { color: #e67e22; }
 
 .import-tabs {
   display: flex;

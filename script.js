@@ -63,11 +63,49 @@ function loadMySample() {
 
 function saveMySample() {
   localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
-  if (folderHandle) {
-    const data = mySample.map(({ id, ...rest }) => rest);
-    writeFolderFile(`mysample_${level}.json`, JSON.stringify(data, null, 2))
-      .catch(err => console.warn("folder write failed:", err));
+  autoWriteShared();
+}
+
+function autoWriteShared() {
+  if (!folderHandle) { setSyncStatus("idle"); return; }
+  const data = mySample.map(({ id, ...rest }) => rest);
+  const json = JSON.stringify(data, null, 2);
+  setSyncStatus("saving");
+  writeFolderFile(`shared_${level}.json`, json)
+    .then(ok => setSyncStatus(ok ? "saved" : "need"))
+    .catch(err => setSyncStatus("error", err && err.message));
+}
+
+function setSyncStatus(state, detail) {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  el.className = "sync-status-line";
+  if (state === "idle") { el.hidden = true; el.textContent = ""; return; }
+  el.hidden = false;
+  switch (state) {
+    case "saving":
+      el.classList.add("saving");
+      el.textContent = "💾 書き込み中…";
+      break;
+    case "saved":
+      el.classList.add("ok");
+      el.textContent = `✅ shared_${level}.json に自動保存済み（Claudeに「プッシュして」で公開）`;
+      break;
+    case "need":
+      el.classList.add("need");
+      el.textContent = "⚠️ フォルダ権限が必要です → 「🔓 再承認」を押してください";
+      showReapprove(true);
+      break;
+    case "error":
+      el.classList.add("error");
+      el.textContent = "❌ 書き込み失敗: " + (detail || "不明なエラー");
+      break;
   }
+}
+
+function showReapprove(show) {
+  const btn = document.getElementById("approveFolderBtn");
+  if (btn) btn.hidden = !show;
 }
 
 /* ========== フォルダ連携（File System Access API） ========== */
@@ -151,18 +189,23 @@ function updateFolderStatus() {
   const hint = document.getElementById("folderHint");
   const linkBtn = document.getElementById("linkFolderBtn");
   const unlinkBtn = document.getElementById("unlinkFolderBtn");
+  const syncBtn = document.getElementById("syncSharedBtn");
   if (folderHandle) {
     wrap.classList.add("linked");
     text.textContent = `✅ 連携中: ${folderHandle.name}`;
-    hint.textContent = "マイサンプルと共有ファイルは自動的にこのフォルダに書き込まれます";
+    hint.textContent = "マイサンプル変更時に shared_{level}.json に自動書込み";
     linkBtn.hidden = true;
     unlinkBtn.hidden = false;
+    if (syncBtn) syncBtn.style.display = "none";
   } else {
     wrap.classList.remove("linked");
     text.textContent = "📁 フォルダ未連携（保存はブラウザ内のみ）";
-    hint.textContent = "連携すると eitango1kyu フォルダに直接保存されます（Chrome/Edge）";
+    hint.textContent = "連携すると追加時に自動で shared_{level}.json に書込み（Chrome/Edge）";
     linkBtn.hidden = false;
     unlinkBtn.hidden = true;
+    showReapprove(false);
+    setSyncStatus("idle");
+    if (syncBtn) syncBtn.style.display = "";
   }
 }
 
@@ -176,28 +219,42 @@ document.getElementById("linkFolderBtn").addEventListener("click", async () => {
     folderHandle = handle;
     await idbSet("folder", handle);
     updateFolderStatus();
-    // 既存の mysample_{level}.json があれば読み込みを提案
-    const content = await readFolderFile(`mysample_${level}.json`);
+    // 既存の shared_{level}.json を読んで、ローカルより件数が多ければ取込を提案
+    const content = await readFolderFile(`shared_${level}.json`);
     if (content) {
       try {
         const parsed = JSON.parse(content);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed) && parsed.length > mySample.length) {
           const doLoad = confirm(
-            `📁 連携フォルダに mysample_${level}.json（${parsed.length}件）が見つかりました。\n` +
-            `\n「OK」→ フォルダの内容でマイサンプルを置き換える\n` +
-            `「キャンセル」→ 現在のマイサンプル（${mySample.length}件）を維持`
+            `📁 フォルダの shared_${level}.json に ${parsed.length}件 あります（ローカルは ${mySample.length}件）。\n\n「OK」→ フォルダの内容で置き換える（推奨）\n「キャンセル」→ ローカルを維持して上書き`
           );
           if (doLoad) {
-            mySample = parsed.map(w => ({ id: w.id || uid(), ...w }));
+            mySample = parsed.map(w => ({ id: uid(), ...w }));
+            localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
           }
         }
       } catch (e) {}
     }
-    saveMySample();
     renderMySampleList();
-    alert(`✅ ${handle.name} と連携しました。\nマイサンプルの変更は自動的にフォルダに保存されます。`);
+    autoWriteShared();
+    alert(`✅ ${handle.name} と連携しました。\n以降の変更は自動保存されます。`);
   } catch (e) {
     if (e.name !== "AbortError") alert("連携に失敗しました: " + e.message);
+  }
+});
+
+document.getElementById("approveFolderBtn").addEventListener("click", async () => {
+  if (!folderHandle) return;
+  try {
+    const perm = await folderHandle.requestPermission({ mode: "readwrite" });
+    if (perm === "granted") {
+      showReapprove(false);
+      autoWriteShared();
+    } else {
+      alert("権限が得られませんでした。もう一度お試しください。");
+    }
+  } catch (e) {
+    alert("再承認に失敗しました: " + e.message);
   }
 });
 
@@ -211,9 +268,19 @@ document.getElementById("unlinkFolderBtn").addEventListener("click", async () =>
 (async function restoreFolder() {
   try {
     const h = await idbGet("folder");
-    if (h) {
-      folderHandle = h;
-      updateFolderStatus();
+    if (!h) return;
+    folderHandle = h;
+    updateFolderStatus();
+    // 権限が既に付与されているか静かに確認（プロンプトは出さない）
+    try {
+      const perm = await h.queryPermission({ mode: "readwrite" });
+      if (perm === "granted") {
+        setSyncStatus("saved");
+      } else {
+        setSyncStatus("need");
+      }
+    } catch (e) {
+      setSyncStatus("need");
     }
   } catch (e) {}
 })();
@@ -1478,6 +1545,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     renderMySampleList();
     renderHiddenList();
     updateSharedBadge();
+    if (folderHandle) autoWriteShared();
   });
 });
 
