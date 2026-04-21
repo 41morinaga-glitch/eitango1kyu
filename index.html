@@ -196,7 +196,17 @@ abhor
       </p>
       <div class="shared-status" id="sharedStatus">
         🌐 現在の共有サンプル: <strong id="sharedCount">読込中…</strong> 件（全員がアクセス可能）
-        <button type="button" class="btn btn-sub btn-owner" id="syncSharedBtn" title="現在のマイサンプルを共有ファイルとして書き出します（オーナー専用）">🌐 共有ファイルを書き出す（オーナー用）</button>
+        <button type="button" class="btn btn-sub btn-owner" id="syncSharedBtn" title="マイサンプルを共有ファイルとして反映（オーナー専用）">🌐 共有ファイルに反映（オーナー用）</button>
+      </div>
+      <div class="folder-link" id="folderLink">
+        <div class="folder-link-info">
+          <span id="folderStatusText">📁 フォルダ未連携（保存はブラウザ内）</span>
+          <span class="folder-hint" id="folderHint">連携するとマイサンプルが eitango1kyu フォルダに自動保存されます</span>
+        </div>
+        <div class="folder-link-buttons">
+          <button type="button" class="btn btn-sub" id="linkFolderBtn">📁 フォルダと連携</button>
+          <button type="button" class="btn btn-sub" id="unlinkFolderBtn" hidden>❌ 連携解除</button>
+        </div>
       </div>
       <form id="msForm">
         <label>

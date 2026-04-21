@@ -63,7 +63,160 @@ function loadMySample() {
 
 function saveMySample() {
   localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
+  if (folderHandle) {
+    const data = mySample.map(({ id, ...rest }) => rest);
+    writeFolderFile(`mysample_${level}.json`, JSON.stringify(data, null, 2))
+      .catch(err => console.warn("folder write failed:", err));
+  }
 }
+
+/* ========== フォルダ連携（File System Access API） ========== */
+let folderHandle = null;
+
+const IDB_DB = "eitango-fs";
+const IDB_STORE = "handles";
+
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(IDB_DB, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(IDB_STORE);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+  });
+}
+async function idbGet(key) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const r = tx.objectStore(IDB_STORE).get(key);
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbSet(key, val) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put(val, key);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+async function idbDel(key) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).delete(key);
+    tx.oncomplete = () => res();
+    tx.onerror = () => rej(tx.error);
+  });
+}
+
+async function ensureFolderRW() {
+  if (!folderHandle) return false;
+  try {
+    const opts = { mode: "readwrite" };
+    let p = await folderHandle.queryPermission(opts);
+    if (p === "granted") return true;
+    p = await folderHandle.requestPermission(opts);
+    return p === "granted";
+  } catch (e) { return false; }
+}
+
+async function writeFolderFile(name, content) {
+  if (!folderHandle) return false;
+  const ok = await ensureFolderRW();
+  if (!ok) return false;
+  const fh = await folderHandle.getFileHandle(name, { create: true });
+  const w = await fh.createWritable();
+  await w.write(content);
+  await w.close();
+  return true;
+}
+
+async function readFolderFile(name) {
+  if (!folderHandle) return null;
+  const ok = await ensureFolderRW();
+  if (!ok) return null;
+  try {
+    const fh = await folderHandle.getFileHandle(name);
+    const file = await fh.getFile();
+    return await file.text();
+  } catch (e) { return null; }
+}
+
+function updateFolderStatus() {
+  const wrap = document.getElementById("folderLink");
+  const text = document.getElementById("folderStatusText");
+  const hint = document.getElementById("folderHint");
+  const linkBtn = document.getElementById("linkFolderBtn");
+  const unlinkBtn = document.getElementById("unlinkFolderBtn");
+  if (folderHandle) {
+    wrap.classList.add("linked");
+    text.textContent = `✅ 連携中: ${folderHandle.name}`;
+    hint.textContent = "マイサンプルと共有ファイルは自動的にこのフォルダに書き込まれます";
+    linkBtn.hidden = true;
+    unlinkBtn.hidden = false;
+  } else {
+    wrap.classList.remove("linked");
+    text.textContent = "📁 フォルダ未連携（保存はブラウザ内のみ）";
+    hint.textContent = "連携すると eitango1kyu フォルダに直接保存されます（Chrome/Edge）";
+    linkBtn.hidden = false;
+    unlinkBtn.hidden = true;
+  }
+}
+
+document.getElementById("linkFolderBtn").addEventListener("click", async () => {
+  if (!window.showDirectoryPicker) {
+    alert("このブラウザはフォルダ連携に対応していません。\nChrome または Edge 最新版でご利用ください。\n（Safari等では従来通りダウンロード方式で動作します）");
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: "readwrite" });
+    folderHandle = handle;
+    await idbSet("folder", handle);
+    updateFolderStatus();
+    // 既存の mysample_{level}.json があれば読み込みを提案
+    const content = await readFolderFile(`mysample_${level}.json`);
+    if (content) {
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const doLoad = confirm(
+            `📁 連携フォルダに mysample_${level}.json（${parsed.length}件）が見つかりました。\n` +
+            `\n「OK」→ フォルダの内容でマイサンプルを置き換える\n` +
+            `「キャンセル」→ 現在のマイサンプル（${mySample.length}件）を維持`
+          );
+          if (doLoad) {
+            mySample = parsed.map(w => ({ id: w.id || uid(), ...w }));
+          }
+        }
+      } catch (e) {}
+    }
+    saveMySample();
+    renderMySampleList();
+    alert(`✅ ${handle.name} と連携しました。\nマイサンプルの変更は自動的にフォルダに保存されます。`);
+  } catch (e) {
+    if (e.name !== "AbortError") alert("連携に失敗しました: " + e.message);
+  }
+});
+
+document.getElementById("unlinkFolderBtn").addEventListener("click", async () => {
+  if (!confirm("フォルダ連携を解除します。\n（ローカル（ブラウザ内）のマイサンプルデータはそのまま残ります）")) return;
+  folderHandle = null;
+  await idbDel("folder");
+  updateFolderStatus();
+});
+
+(async function restoreFolder() {
+  try {
+    const h = await idbGet("folder");
+    if (h) {
+      folderHandle = h;
+      updateFolderStatus();
+    }
+  } catch (e) {}
+})();
 
 function loadHidden() {
   try {
@@ -1248,16 +1401,30 @@ document.getElementById("msImportFile").addEventListener("change", async e => {
   e.target.value = "";
 });
 
-document.getElementById("syncSharedBtn").addEventListener("click", () => {
+document.getElementById("syncSharedBtn").addEventListener("click", async () => {
   if (mySample.length === 0) {
     alert("マイサンプルが空です。まず単語を追加してください。");
     return;
   }
-  if (!confirm(
-    `オーナー用の操作です。\n\n現在のマイサンプル ${mySample.length}件 を共有ファイル shared_${level}.json としてダウンロードします。\n\nダウンロード後、このファイルをリポジトリの shared_${level}.json と置き換えて git push してください。\n全員に反映されます。`
-  )) return;
   const data = mySample.map(({ id, ...rest }) => rest);
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const json = JSON.stringify(data, null, 2);
+
+  if (folderHandle) {
+    if (!confirm(`📁 連携フォルダ「${folderHandle.name}」内の shared_${level}.json を上書きします。\n\n${mySample.length}件を反映。続けますか？\n\n（書き込み後、Claudeに「プッシュして」と伝えれば反映完了）`)) return;
+    const ok = await writeFolderFile(`shared_${level}.json`, json);
+    if (ok) {
+      alert(`✅ shared_${level}.json に書き込みました。\nChaude に「プッシュして」とお伝えください。`);
+    } else {
+      alert("❌ 書き込みに失敗しました。権限またはフォルダを確認してください。");
+    }
+    return;
+  }
+
+  // フォルダ未連携 → 従来のダウンロード
+  if (!confirm(
+    `現在のマイサンプル ${mySample.length}件 を共有ファイル shared_${level}.json としてダウンロードします。\n\nダウンロード後、このファイルをリポジトリの shared_${level}.json と置き換えて git push してください。`
+  )) return;
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
