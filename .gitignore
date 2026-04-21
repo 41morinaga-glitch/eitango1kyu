@@ -2,3 +2,7 @@
 *.log
 .vscode/
 .idea/
+
+# ダウンロード時の重複ファイル（shared_1kyu.json 以外）
+shared_[0-9]kyu-[0-9]*.json
+mysample_*.json
