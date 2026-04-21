@@ -1262,8 +1262,14 @@ document.getElementById("syncSharedBtn").addEventListener("click", () => {
   const a = document.createElement("a");
   a.href = url;
   a.download = `shared_${level}.json`;
+  a.rel = "noopener";
+  a.style.display = "none";
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 200);
 });
 
 document.getElementById("msClearBtn").addEventListener("click", () => {
