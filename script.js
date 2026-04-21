@@ -183,6 +183,25 @@ async function readFolderFile(name) {
   } catch (e) { return null; }
 }
 
+async function loadMySampleFromFolderIfEmpty() {
+  if (!folderHandle || mySample.length > 0) return false;
+  try {
+    const perm = await folderHandle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted") return false; // プロンプトは出さない
+    const fh = await folderHandle.getFileHandle(`shared_${level}.json`).catch(() => null);
+    if (!fh) return false;
+    const file = await fh.getFile();
+    const content = await file.text();
+    const parsed = JSON.parse(content);
+    if (!Array.isArray(parsed) || parsed.length === 0) return false;
+    mySample = parsed.map(w => ({ id: uid(), ...w }));
+    localStorage.setItem(mySampleKeyFor(level), JSON.stringify(mySample));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 function updateFolderStatus() {
   const wrap = document.getElementById("folderLink");
   const text = document.getElementById("folderStatusText");
@@ -271,11 +290,15 @@ document.getElementById("unlinkFolderBtn").addEventListener("click", async () =>
     if (!h) return;
     folderHandle = h;
     updateFolderStatus();
-    // 権限が既に付与されているか静かに確認（プロンプトは出さない）
     try {
       const perm = await h.queryPermission({ mode: "readwrite" });
       if (perm === "granted") {
         setSyncStatus("saved");
+        // ローカルが空ならフォルダの shared_{level}.json を取り込む
+        if (mySample.length === 0) {
+          const loaded = await loadMySampleFromFolderIfEmpty();
+          if (loaded) renderMySampleList();
+        }
       } else {
         setSyncStatus("need");
       }
@@ -1525,7 +1548,7 @@ function applyLevelUI() {
 }
 
 document.querySelectorAll(".level-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     if (btn.dataset.level === level) return;
     synth && synth.cancel();
     card.classList.remove("flipped", "swipe-left", "swipe-right", "swipe-in-left", "swipe-in-right");
@@ -1545,7 +1568,18 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     renderMySampleList();
     renderHiddenList();
     updateSharedBadge();
-    if (folderHandle) autoWriteShared();
+    // フォルダ連携中 & ローカルが空 → フォルダから読み込み（書込はしない）
+    if (folderHandle && mySample.length === 0) {
+      const loaded = await loadMySampleFromFolderIfEmpty();
+      if (loaded) renderMySampleList();
+    }
+    // ステータス更新だけ（書込は trigger しない）
+    if (folderHandle) {
+      try {
+        const perm = await folderHandle.queryPermission({ mode: "readwrite" });
+        setSyncStatus(perm === "granted" ? "saved" : "need");
+      } catch (e) {}
+    }
   });
 });
 
