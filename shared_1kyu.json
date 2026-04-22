@@ -600,5 +600,159 @@
     "meaning": "誰もが認める通り、自ら認める通り",
     "example": "",
     "exampleJa": ""
+  },
+  {
+    "word": "allegedly",
+    "pos": "副詞",
+    "meaning": "伝えられるところによると、申し立てによると",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "extensively",
+    "pos": "副詞",
+    "meaning": "広範に、大規模に",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "firmly",
+    "pos": "副詞",
+    "meaning": "堅く、断固として",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "incline",
+    "pos": "動詞",
+    "meaning": "を気にさせる、を思わせる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "intensity",
+    "pos": "動詞",
+    "meaning": "を（一層）強化する、を強める",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "lodge",
+    "pos": "動詞",
+    "meaning": "（苦情など）を申し出る",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "mitigate",
+    "pos": "動詞",
+    "meaning": "（怒り・苦情など）を和らげる、を静める",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "outlaw",
+    "pos": "動詞",
+    "meaning": "を非合法化する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "render",
+    "pos": "動詞",
+    "meaning": "OをCにする、を表現する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "supervise",
+    "pos": "動詞",
+    "meaning": "を監督する、を指揮する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "chatter",
+    "pos": "動詞",
+    "meaning": "べちゃくちゃしゃべる、おしゃべりする",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "conjure",
+    "pos": "動詞",
+    "meaning": "を思い起こさせる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "cripple",
+    "pos": "動詞",
+    "meaning": "を機能をまひさせる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "culminate",
+    "pos": "動詞",
+    "meaning": "頂点に達成する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "foresee",
+    "pos": "動詞",
+    "meaning": "を予知する、を見越す",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "lull",
+    "pos": "動詞",
+    "meaning": "を落ち着かせ眠くさせる、安心させてBの状態にする",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "misunderstand",
+    "pos": "動詞",
+    "meaning": "を誤解する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "perpetuate",
+    "pos": "動詞",
+    "meaning": "を固定化する、を永続させる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "wane",
+    "pos": "動詞",
+    "meaning": "衰える、衰退する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "appraise",
+    "pos": "動詞",
+    "meaning": "を鑑定する、を値踏みする",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "ascribe",
+    "pos": "動詞",
+    "meaning": "AをBのせいにする、AをBに帰する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "budge",
+    "pos": "動詞",
+    "meaning": "譲歩する、態度を変える",
+    "example": "",
+    "exampleJa": ""
   }
 ]
