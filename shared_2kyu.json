@@ -341,5 +341,124 @@
     "meaning": "の方を好む",
     "example": "",
     "exampleJa": ""
+  },
+  {
+    "word": "recycle",
+    "pos": "動詞",
+    "meaning": "再生利用する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "face",
+    "pos": "動詞",
+    "meaning": "に直面する、の方に顔を向ける",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "invent",
+    "pos": "動詞",
+    "meaning": "を発明する、を考案する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "prevent",
+    "pos": "動詞",
+    "meaning": "を防ぐ、を妨げる",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "decrease",
+    "pos": "動詞",
+    "meaning": "を減らす、減少する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "attach",
+    "pos": "動詞",
+    "meaning": "を添付する、を取り付ける",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "shape",
+    "pos": "動詞",
+    "meaning": "を形作る、を形成する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "fill",
+    "pos": "動詞",
+    "meaning": "を満たす",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "exchange",
+    "pos": "動詞",
+    "meaning": "を交換し合う、を交換する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "realize",
+    "pos": "動詞",
+    "meaning": "に気づく、を悟る、を実現する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "lower",
+    "pos": "動詞",
+    "meaning": "を下げる、を低くする",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "guss",
+    "pos": "動詞",
+    "meaning": "だと思う、を推測する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "gain",
+    "pos": "動詞",
+    "meaning": "を得る、を増す",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "suit",
+    "pos": "動詞",
+    "meaning": "に似合う、に都合が良い",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "land",
+    "pos": "動詞",
+    "meaning": "着陸する、上陸する",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "award",
+    "pos": "動詞",
+    "meaning": "AにB（賞など）を与える",
+    "example": "",
+    "exampleJa": ""
+  },
+  {
+    "word": "statement",
+    "pos": "名詞",
+    "meaning": "陳述、声明",
+    "example": "",
+    "exampleJa": ""
   }
 ]
